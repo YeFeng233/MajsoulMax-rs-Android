@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- hudsucker.cer, handed to the system certificate installer. -->
+    <files-path
+        name="ca"
+        path="ca/" />
+    <!-- core.log, handed to a share target. -->
+    <files-path
+        name="logs"
+        path="logs/" />
+</paths>

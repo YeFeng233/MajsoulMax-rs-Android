@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Stylised mahjong tile -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,28h32a6,6 0 0 1 6,6v40a6,6 0 0 1 -6,6H38a6,6 0 0 1 -6,-6V34a6,6 0 0 1 6,-6z" />
+    <path
+        android:fillColor="#1B5E4B"
+        android:pathData="M42,38h24v5H42z" />
+    <path
+        android:fillColor="#C62828"
+        android:pathData="M51,48h6v22h-6z" />
+    <path
+        android:fillColor="#1B5E4B"
+        android:pathData="M42,58h24v5H42z" />
+</vector>

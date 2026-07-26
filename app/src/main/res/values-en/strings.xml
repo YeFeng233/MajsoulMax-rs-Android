@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Majsoul Max</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_cert">Cert</string>
+    <string name="nav_config">Config</string>
+    <string name="nav_logs">Logs</string>
+    <string name="nav_apps">Apps</string>
+
+    <string name="status_stopped">Stopped</string>
+    <string name="status_starting">Starting…</string>
+    <string name="status_running">Running</string>
+    <string name="status_stopping">Stopping…</string>
+    <string name="status_error">Failed to start</string>
+
+    <string name="home_hint_stopped">Once on, Mahjong Soul traffic is routed through the bundled Meta kernel into the local MITM proxy.</string>
+    <string name="home_hint_running">Routing is live — you can launch the game now.</string>
+    <string name="home_checklist">Pre-flight checks</string>
+    <string name="home_quick_actions">Quick actions</string>
+    <string name="home_runtime">Runtime</string>
+
+    <string name="check_assets">Config bundle ready</string>
+    <string name="check_assets_desc">liqi_config has not been unpacked yet</string>
+    <string name="check_cert">Root certificate trusted</string>
+    <string name="check_cert_desc">hudsucker CA is not installed — HTTPS cannot be decrypted</string>
+    <string name="check_kernel">Meta kernel bundled</string>
+    <string name="check_kernel_desc">libmihomo.so is missing from the APK</string>
+    <string name="check_core">MITM core bundled</string>
+    <string name="check_core_desc">libmajsoulmax.so is missing from the APK</string>
+    <string name="check_tunnel">Tunnel bridge bundled</string>
+    <string name="check_tunnel_desc">libhev-socks5-tunnel.so is missing — VPN mode cannot start</string>
+    <string name="check_notify">Notifications allowed</string>
+    <string name="check_notify_desc">Without notification access the foreground service may be killed</string>
+    <string name="check_action_fix">Fix</string>
+    <string name="check_recheck">Re-check</string>
+
+    <string name="action_open_game">Open Mahjong Soul</string>
+    <string name="action_open_game_desc">Built-in browser, line 1</string>
+    <string name="action_install_cert">Install certificate</string>
+    <string name="action_install_cert_desc">Jump straight to the system CA installer</string>
+    <string name="action_edit_config">Edit config</string>
+    <string name="action_edit_config_desc">Visual editor for settings and mod options</string>
+    <string name="action_view_logs">View logs</string>
+    <string name="action_view_logs_desc">Live output from the MITM core and Meta kernel</string>
+
+    <string name="info_mitm">MITM proxy</string>
+    <string name="info_mixed">Meta mixed port</string>
+    <string name="info_uptime">Uptime</string>
+    <string name="info_mode">Mode</string>
+    <string name="info_core_version">Core version</string>
+    <string name="mode_vpn">System-wide VPN</string>
+    <string name="mode_browser">Built-in browser only</string>
+
+    <string name="cert_title">Root certificate</string>
+    <string name="cert_intro">The MITM proxy re-signs HTTPS with its own root, so the system has to trust the hudsucker certificate first.</string>
+    <string name="cert_state_trusted">Certificate is in the system trust store</string>
+    <string name="cert_state_untrusted">Certificate is not installed</string>
+    <string name="cert_install">Install certificate</string>
+    <string name="cert_open_settings">Open system certificate settings</string>
+    <string name="cert_export">Export to Downloads</string>
+    <string name="cert_exported">Exported: %1$s</string>
+    <string name="cert_export_failed">Export failed: %1$s</string>
+    <string name="cert_copy_fingerprint">Copy fingerprint</string>
+    <string name="cert_copied">Copied to clipboard</string>
+    <string name="cert_detail_subject">Subject</string>
+    <string name="cert_detail_issuer">Issuer</string>
+    <string name="cert_detail_valid">Validity</string>
+    <string name="cert_detail_sha256">SHA-256 fingerprint</string>
+    <string name="cert_manual_title">Manual install</string>
+    <string name="cert_manual_steps">1. Tap “Install certificate” above — the system dialog should appear.\n2. If nothing appears, tap “Open system certificate settings”, then Security → Encryption &amp; credentials → Install a certificate → CA certificate.\n3. Pick the hudsucker.cer you exported to Downloads.\n4. Confirm the “network may be monitored” warning.</string>
+    <string name="cert_warning_title">About the Android 7+ restriction</string>
+    <string name="cert_warning_body">A user-installed CA is only honoured by apps that opt into user certificates. Browsers (including the built-in one here) work fine; some game clients ignore user CAs, in which case use the built-in browser, or move the certificate into the system store on a rooted device.</string>
+    <string name="cert_install_unsupported">This ROM exposes no certificate installer — please install manually.</string>
+
+    <string name="config_tab_general">General</string>
+    <string name="config_tab_mod">Mod</string>
+    <string name="config_tab_proxy">Proxy</string>
+    <string name="config_tab_raw">Raw JSON</string>
+    <string name="config_save">Save</string>
+    <string name="config_saved">Saved</string>
+    <string name="config_reset">Reset to defaults</string>
+    <string name="config_reset_confirm">Overwrite the current config with the bundled defaults?</string>
+    <string name="config_unsaved">Unsaved changes</string>
+    <string name="config_restart_hint">Restart the tunnel for changes to take effect.</string>
+    <string name="config_restart_now">Restart now</string>
+    <string name="config_invalid_json">Invalid JSON: %1$s</string>
+    <string name="config_format_json">Format</string>
+    <string name="config_discard">Discard</string>
+
+    <string name="cfg_mod_switch">Enable mod</string>
+    <string name="cfg_mod_switch_desc">Unlock characters, skins, decorations and titles</string>
+    <string name="cfg_helper_switch">Enable helper forwarding</string>
+    <string name="cfg_helper_switch_desc">Push game records to a helper you host yourself</string>
+    <string name="cfg_auto_update">Auto-update liqi</string>
+    <string name="cfg_auto_update_desc">Check for protocol updates on start</string>
+    <string name="cfg_proxy_addr">MITM listen address</string>
+    <string name="cfg_api_url">Helper API URL</string>
+    <string name="cfg_github_token">GitHub token</string>
+    <string name="cfg_github_token_desc">Leave empty for anonymous access; set one if you hit rate limits</string>
+    <string name="cfg_req_proxy">Upstream proxy for updates</string>
+    <string name="cfg_req_proxy_desc">e.g. http://127.0.0.1:7890 — empty means direct</string>
+    <string name="cfg_liqi_version">Current liqi version</string>
+    <string name="cfg_send_method">Forwarded methods</string>
+    <string name="cfg_send_action">Forwarded actions</string>
+
+    <string name="cfg_main_char">Main character ID</string>
+    <string name="cfg_nickname">Nickname override</string>
+    <string name="cfg_nickname_desc">Empty means unchanged</string>
+    <string name="cfg_title">Title ID</string>
+    <string name="cfg_hint_switch">Force hints on</string>
+    <string name="cfg_emoji_switch">Unlock emotes</string>
+    <string name="cfg_show_server">Show server info</string>
+    <string name="cfg_anti_censor">Bypass nickname censorship</string>
+    <string name="cfg_mod_auto_update">Auto-update lqc.lqbin</string>
+    <string name="cfg_random_char">Random main character</string>
+    <string name="cfg_preset_index">Decoration preset index</string>
+    <string name="cfg_char_skin">Character skin map</string>
+    <string name="cfg_char_skin_desc">character ID → skin ID</string>
+    <string name="cfg_star_character">Starred characters</string>
+    <string name="cfg_hidden_characters">Hidden characters</string>
+    <string name="cfg_loading_bg">Loading CGs</string>
+    <string name="cfg_mod_version">Current lqc version</string>
+
+    <string name="cfg_mixed_port">Meta mixed port</string>
+    <string name="cfg_upstream_dns">Upstream DNS</string>
+    <string name="cfg_sniff">TLS SNI sniffing</string>
+    <string name="cfg_sniff_desc">Recovers the hostname from the TLS handshake so domain rules can match</string>
+    <string name="cfg_ipv6">Enable IPv6</string>
+    <string name="cfg_domains">Routed domain keywords</string>
+    <string name="cfg_domains_desc">Matching domains are sent into the MITM proxy</string>
+    <string name="cfg_bypass_lan">Bypass LAN</string>
+    <string name="cfg_extra_rules">Extra rules</string>
+    <string name="cfg_extra_rules_desc">Written verbatim into the Meta rules list, ahead of the built-in ones</string>
+    <string name="cfg_mihomo_log">Meta log level</string>
+
+    <string name="list_add">Add</string>
+    <string name="list_empty">Nothing here yet</string>
+    <string name="list_remove">Remove</string>
+    <string name="map_key">Key</string>
+    <string name="map_value">Value</string>
+
+    <string name="logs_empty">No log output yet</string>
+    <string name="logs_autoscroll">Auto-scroll</string>
+    <string name="logs_clear">Clear</string>
+    <string name="logs_share">Share</string>
+    <string name="logs_copy">Copy</string>
+    <string name="logs_filter_all">All</string>
+    <string name="logs_wrap">Wrap lines</string>
+
+    <string name="apps_intro">By default every app goes through the VPN except this one, which keeps the proxy from looping back on itself. You can narrow that to a chosen set instead.</string>
+    <string name="apps_mode_all">All apps</string>
+    <string name="apps_mode_allow">Only selected</string>
+    <string name="apps_mode_deny">Exclude selected</string>
+    <string name="apps_search">Search apps</string>
+    <string name="apps_selected">%1$d selected</string>
+    <string name="apps_show_system">Show system apps</string>
+
+    <string name="notif_channel_name">Tunnel status</string>
+    <string name="notif_channel_desc">Shows whether the MITM proxy and Meta kernel are running</string>
+    <string name="notif_running">Majsoul Max is running</string>
+    <string name="notif_running_desc">MITM %1$s · Meta %2$d</string>
+    <string name="notif_stop">Stop</string>
+
+    <string name="web_needs_cert">No root certificate detected — the page may report certificate errors. Install it first.</string>
+    <string name="web_starting_core">Starting the MITM core…</string>
+    <string name="web_proxy_unsupported">This WebView cannot use an in-process proxy — use VPN mode instead.</string>
+
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="error_generic">Something went wrong: %1$s</string>
+    <string name="vpn_permission_denied">VPN permission was denied, so routing cannot start.</string>
+    <string name="disclaimer_title">Disclaimer</string>
+    <string name="disclaimer_body">This project is free and open source — if you paid for it, you were scammed.\nFor study and personal use only, never commercial. Using it may get your account banned; neither the upstream author nor this packaging takes any responsibility.</string>
+    <string name="disclaimer_accept">I have read and agree</string>
+    <string name="about_upstream">Upstream project</string>
+    <string name="about_license">License: GPL-3.0</string>
+</resources>
