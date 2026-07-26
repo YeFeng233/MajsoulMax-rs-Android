@@ -47,6 +47,21 @@ extern void hev_socks5_tunnel_quit(void);
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t g_cond = PTHREAD_COND_INITIALIZER;
 static int g_running = 0;
+/*
+ * libhev-socks5-tunnel.so ships a JNI_OnLoad that RegisterNatives against a Java
+ * class from upstream's own sample app. That class is absent here, so FindClass
+ * returns null and ART aborts the process. System.loadLibrary resolves JNI_OnLoad
+ * by dlsym on our handle, and bionic searches the library before its DT_NEEDED
+ * dependencies, so a no-op here wins and upstream's never runs. We do not need it:
+ * our entry points resolve by JNI name mangling, and we call
+ * hev_socks5_tunnel_main_from_str directly rather than through its Java bridge.
+ */
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
+{
+    (void) vm;
+    (void) reserved;
+    return JNI_VERSION_1_6;
+}
 
 /* How long nativeStop waits for the tunnel loop to acknowledge quit(). */
 #define STOP_TIMEOUT_SECONDS 5
