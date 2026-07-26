@@ -64,7 +64,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           # MajsoulMax-rs is edition 2024, which needs 1.85+.
-          toolchain: '1.85'
+         toolchain: stable
           targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
  
       - name: Resolve upstream revision
