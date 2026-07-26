@@ -1,0 +1,166 @@
+name: Build APK
+ 
+on:
+  push:
+    branches: [main, master]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      mihomo_version:
+        description: 'Meta kernel release tag (blank = latest)'
+        required: false
+        default: ''
+      build_type:
+        description: 'Gradle build type'
+        required: false
+        default: 'release'
+        type: choice
+        options: [release, debug]
+ 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+ 
+env:
+  NDK_VERSION: 27.2.12479018
+  TARGET_ABIS: arm64-v8a armeabi-v7a
+ 
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+ 
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+ 
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+ 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+ 
+      - name: Install NDK ${{ env.NDK_VERSION }}
+        run: |
+          sdkmanager --install "ndk;${NDK_VERSION}" "cmake;3.22.1" > /dev/null
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/${NDK_VERSION}" >> "$GITHUB_ENV"
+ 
+      - name: Install protoc
+        # Upstream's build.rs compiles liqi.proto, so this is not optional.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends protobuf-compiler
+          protoc --version
+ 
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          # Not pinned: upstream needs >= 1.85 for edition 2024, but the
+          # transitive tree floats ahead of that (icu_* wants 1.86, rcgen
+          # and time want 1.88), and with no committed Cargo.lock every
+          # resolve picks the newest versions. A pin goes stale in weeks.
+          toolchain: stable
+          targets: aarch64-linux-android,armv7-linux-androideabi
+
+      - name: Resolve upstream revision
+        id: upstream
+        # The cargo cache must key on the submodule commit: majsoul-jni is a
+        # standalone workspace, so nothing else in this repo changes when upstream
+        # moves.
+        run: echo "rev=$(git -C external/MajsoulMax-rs rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+ 
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            rust/majsoul-jni/target
+          key: >-
+            cargo-${{ runner.os }}-${{ steps.upstream.outputs.rev }}-${{
+            hashFiles('rust/majsoul-jni/Cargo.toml') }}
+          restore-keys: cargo-${{ runner.os }}-
+ 
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked --version ^3
+ 
+      - name: Build the Meta kernel payload
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MIHOMO_VERSION: ${{ github.event.inputs.mihomo_version }}
+        run: ./scripts/fetch-mihomo.sh "${MIHOMO_VERSION:-latest}"
+ 
+      - name: Build hev-socks5-tunnel
+        run: ./scripts/build-tun2socks.sh
+ 
+      - name: Build the Rust MITM core
+        run: ./scripts/build-rust.sh
+ 
+      - name: Generate a CI signing key
+        # A throwaway key, so the release APK installs without extra steps. Swap
+        # in your own keystore for anything you intend to distribute.
+        run: |
+          keytool -genkeypair -v \
+            -keystore ci-keystore.jks \
+            -alias ci \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass majsoulmax -keypass majsoulmax \
+            -dname "CN=MajsoulMax CI, OU=CI, O=MajsoulMax, C=US"
+ 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+ 
+      - name: Assemble
+        run: |
+          TYPE="${{ github.event.inputs.build_type || 'release' }}"
+          case "$TYPE" in
+            debug)   ./gradlew --no-daemon -Pmajsoulmax.buildRust=false assembleDebug ;;
+            *)       ./gradlew --no-daemon -Pmajsoulmax.buildRust=false assembleRelease ;;
+          esac
+ 
+      - name: Report payload sizes
+        if: always()
+        run: |
+          echo '### Native payloads' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '| ABI | library | size |' >> "$GITHUB_STEP_SUMMARY"
+          echo '|---|---|---|' >> "$GITHUB_STEP_SUMMARY"
+          for so in $(find app/src/main/jniLibs app/build/generated/jniLibs \
+                        -name '*.so' 2>/dev/null | sort); do
+            abi=$(basename "$(dirname "$so")")
+            echo "| $abi | $(basename "$so") | $(du -h "$so" | cut -f1) |" >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo '### APKs' >> "$GITHUB_STEP_SUMMARY"
+          find app/build/outputs/apk -name '*.apk' -exec ls -lh {} \; >> "$GITHUB_STEP_SUMMARY" || true
+ 
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: majsoulmax-apk
+          path: app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 30
+ 
+      - name: Upload mapping file
+        uses: actions/upload-artifact@v4
+        if: hashFiles('app/build/outputs/mapping/**/mapping.txt') != ''
+        with:
+          name: r8-mapping
+          path: app/build/outputs/mapping/**/mapping.txt
+          retention-days: 30
+ 
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/**/*.apk
+          generate_release_notes: true

@@ -9,7 +9,7 @@ plugins {
 }
 
 /** ABIs we ship. Keep in sync with scripts/build-rust.sh and the CI workflow. */
-val shippedAbis = listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+val shippedAbis = listOf("arm64-v8a", "armeabi-v7a")
 
 val buildRust = (project.findProperty("majsoulmax.buildRust") as String?)?.toBoolean() ?: true
 

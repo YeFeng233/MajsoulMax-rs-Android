@@ -97,7 +97,7 @@ already built. The build warns rather than fails when a native payload is
 missing, so you can iterate on the UI without a full toolchain — the VPN just
 refuses to start and says why.
 
-ABIs shipped: `arm64-v8a`, `armeabi-v7a`, `x86_64`.
+ABIs shipped: `arm64-v8a` and `armeabi-v7a` (no x86_64, so it will not install on an x86_64 emulator).
 
 ## Using it
 

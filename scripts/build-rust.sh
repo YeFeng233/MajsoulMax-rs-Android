@@ -13,7 +13,7 @@ UPSTREAM_DIR="$ROOT/external/MajsoulMax-rs"
 # two payload scripts write to app/src/main/jniLibs instead, which Gradle also
 # reads but does not manage.
 JNI_LIBS_DIR="${JNI_LIBS_DIR:-$ROOT/app/build/generated/jniLibs}"
-TARGET_ABIS="${TARGET_ABIS:-arm64-v8a armeabi-v7a x86_64}"
+TARGET_ABIS="${TARGET_ABIS:-arm64-v8a armeabi-v7a}"
 PROFILE="${RUST_PROFILE:-release}"
 
 die() { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }

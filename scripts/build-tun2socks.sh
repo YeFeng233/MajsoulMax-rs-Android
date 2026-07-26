@@ -12,7 +12,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$ROOT/external/hev-socks5-tunnel"
 JNI_LIBS_DIR="${JNI_LIBS_DIR:-$ROOT/app/src/main/jniLibs}"
-TARGET_ABIS="${TARGET_ABIS:-arm64-v8a armeabi-v7a x86_64}"
+TARGET_ABIS="${TARGET_ABIS:-arm64-v8a armeabi-v7a}"
 
 die() { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 info() { printf '\033[36m==>\033[0m %s\n' "$*"; }
