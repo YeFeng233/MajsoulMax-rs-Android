@@ -1,0 +1,12 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.cxx/
+app/src/main/jniLibs/
+rust/majsoul-jni/target/
+rust/majsoul-jni/Cargo.lock
+external/hev-socks5-tunnel/libs/
+external/hev-socks5-tunnel/obj/
+.DS_Store

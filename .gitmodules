@@ -1,0 +1,6 @@
+[submodule "external/MajsoulMax-rs"]
+	path = external/MajsoulMax-rs
+	url = https://github.com/Xerxes-2/MajsoulMax-rs.git
+[submodule "external/hev-socks5-tunnel"]
+	path = external/hev-socks5-tunnel
+	url = https://github.com/heiher/hev-socks5-tunnel.git
