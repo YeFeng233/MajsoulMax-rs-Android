@@ -19,6 +19,10 @@ majsoul_max_rs = { path = "../../external/MajsoulMax-rs" }
 
 anyhow = "1"
 jni = "0.21"
+# Not used directly. Upstream declares serde with default-features = false and no
+# "derive", relying on something else in its own graph to switch it on. Declaring
+# derive here re-enables it for the whole graph via feature unification.
+serde = { version = "1", features = ["derive"] }
 tokio = { version = "1", features = [
     "macros",
     "net",
