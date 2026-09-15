@@ -192,4 +192,5 @@
     <string name="github_custom">Custom mirror</string>
     <string name="github_mirror_url">HTTPS mirror prefix</string>
     <string name="github_mirror_desc">Accelerates GitHub protocol downloads. Release checks use GitHub API directly. Tokens are never sent to mirrors; failed downloads fall back to GitHub.</string>
+    <string name="github_conversun_unavailable">Conversun Hub (Conversun repositories only)</string>
 </resources>

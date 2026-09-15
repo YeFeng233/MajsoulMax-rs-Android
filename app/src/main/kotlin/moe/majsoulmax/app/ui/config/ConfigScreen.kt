@@ -662,7 +662,8 @@ private fun GitHubMirrorPicker(value: String, onChange: (String) -> Unit) {
         "GH-Proxy" to "https://gh-proxy.com/",
         "GHFast" to "https://ghfast.top/",
         "GHProxy.net" to "https://ghproxy.net/",
-        "CDN GHProxy" to "https://cdn.gh-proxy.com/",
+        "CDN GHProxy" to "https://cdn.gh-proxy.org/",
+        "Cors Proxy" to "https://cors.isteed.cc/",
         "GH DDLC" to "https://gh.ddlc.top/",
     )
     var expanded by remember { mutableStateOf(false) }
@@ -674,6 +675,11 @@ private fun GitHubMirrorPicker(value: String, onChange: (String) -> Unit) {
                 Text(if (custom || selected == null) stringResource(R.string.github_custom) else selected.first)
             }
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.github_conversun_unavailable)) },
+                    enabled = false,
+                    onClick = {},
+                )
                 mirrors.forEach { (label, url) ->
                     DropdownMenuItem(text = { Text(label) }, onClick = {
                         onChange(url); custom = false; expanded = false

@@ -204,4 +204,5 @@
     <string name="github_custom">自定义镜像</string>
     <string name="github_mirror_url">HTTPS 镜像前缀</string>
     <string name="github_mirror_desc">用于 GitHub 协议资源下载；更新查询仍直连 GitHub API。镜像不会收到 GitHub Token，失败时回退直连。</string>
+    <string name="github_conversun_unavailable">Conversun Hub（仅支持 Conversun 仓库）</string>
 </resources>

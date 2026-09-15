@@ -159,3 +159,10 @@ scripts/                    native build/fetch scripts
 * [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) — the Meta kernel.
 * [heiher/hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) — the
   tun bridge.
+
+Mirror presets: GH-Proxy (`gh-proxy.com`), GHFast (`ghfast.top`), GHProxy.net,
+CDN GHProxy (`cdn.gh-proxy.org`), Cors Proxy (`cors.isteed.cc`), and GH DDLC
+(`gh.ddlc.top`). Conversun Hub is shown as unavailable because it only permits
+Conversun repositories, whereas protocol assets come from Xerxes-2/AutoLiqi.
+Mirror service definitions were checked against
+https://github.com/conversun/fnos-store/blob/main/internal/config/config.go.
