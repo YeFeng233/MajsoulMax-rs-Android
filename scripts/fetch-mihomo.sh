@@ -12,7 +12,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 JNI_LIBS_DIR="${JNI_LIBS_DIR:-$ROOT/app/src/main/jniLibs}"
-TARGET_ABIS="${TARGET_ABIS:-arm64-v8a armeabi-v7a x86_64}"
+TARGET_ABIS="${TARGET_ABIS:-arm64-v8a armeabi-v7a}"
 REPO="MetaCubeX/mihomo"
 VERSION="${1:-${MIHOMO_VERSION:-latest}}"
 

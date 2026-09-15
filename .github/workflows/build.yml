@@ -24,7 +24,7 @@ concurrency:
 
 env:
   NDK_VERSION: 27.2.12479018
-  TARGET_ABIS: arm64-v8a armeabi-v7a x86_64
+  TARGET_ABIS: arm64-v8a armeabi-v7a
 
 jobs:
   build:
@@ -68,7 +68,7 @@ jobs:
         with:
           # MajsoulMax-rs is edition 2024, which needs 1.85+.
           toolchain: stable
-          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+          targets: aarch64-linux-android,armv7-linux-androideabi
 
       - name: Resolve upstream revision
         id: upstream
