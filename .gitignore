@@ -17,3 +17,4 @@ external/hev-socks5-tunnel/obj/
 *.log
 ci-keystore.jks
 *.keystore
+.signing/

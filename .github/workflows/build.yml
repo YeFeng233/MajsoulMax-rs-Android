@@ -105,21 +105,19 @@ jobs:
       - name: Build the Rust MITM core
         run: ./scripts/build-rust.sh
 
-      - name: Generate a CI signing key
-        # A throwaway key, so the release APK installs without extra steps. Swap
-        # in your own keystore for anything you intend to distribute.
+      - name: Restore repository signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          keytool -genkeypair -v \
-            -keystore ci-keystore.jks \
-            -alias ci \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass majsoulmax -keypass majsoulmax \
-            -dname "CN=MajsoulMax CI, OU=CI, O=MajsoulMax, C=US"
-
+          test -n "$ANDROID_KEYSTORE_BASE64" || { echo "Missing ANDROID_KEYSTORE_BASE64 repository secret" >&2; exit 1; }
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > ci-keystore.jks
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble
+        env:
+          CI_KEYSTORE_PASSWORD: ${{ secrets.CI_KEYSTORE_PASSWORD }}
+          CI_KEY_PASSWORD: ${{ secrets.CI_KEYSTORE_PASSWORD }}
         run: |
           TYPE="${{ github.event.inputs.build_type || 'release' }}"
           case "$TYPE" in

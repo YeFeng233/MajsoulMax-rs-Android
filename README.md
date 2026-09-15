@@ -71,8 +71,7 @@ builds hev-socks5-tunnel and the Rust core, then assembles and uploads a signed
 APK as a build artifact. `workflow_dispatch` lets you pin a specific mihomo
 release or build a debug variant.
 
-The release build is signed with a throwaway key generated in CI so it installs
-without extra steps. Swap in your own keystore before distributing anything.
+Release builds use a fixed repository signing key from the ANDROID_KEYSTORE_BASE64 and CI_KEYSTORE_PASSWORD Actions secrets. Keep these secrets consistent so updates to com.yefeng.majmax retain app data.
 
 ### Locally
 
