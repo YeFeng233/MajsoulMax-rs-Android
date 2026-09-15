@@ -30,7 +30,7 @@ fun AboutScreen() {
         SectionCard(title = stringResource(R.string.about_links)) {
             listOf(
                 R.string.about_upstream to "https://github.com/Xerxes-2/MajsoulMax-rs",
-                R.string.about_repository to "https://github.com/YeFeng233/MajsoulMax-Android",
+                R.string.about_repository to "https://github.com/YeFeng233/MajsoulMax-rs-Android",
                 R.string.about_game_site to GameLauncher.DOWNLOAD_URL,
             ).forEach { (label, url) ->
                 TextButton(onClick = {

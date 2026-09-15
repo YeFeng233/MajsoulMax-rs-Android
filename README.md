@@ -2,7 +2,7 @@
 
 雀魂 Max 将代理内核和功能配置放进一个 Android 应用中。安装后，你可以在手机上完成证书安装、启动代理和打开雀魂，不必再单独配置 Termux 或另一款 VPN 工具。
 
-这份教程按当前 1.1.0 版本编写。第一次使用时，按下面的顺序操作即可。
+这份教程按当前 1.1.1 版本编写。第一次使用时，按下面的顺序操作即可。
 
 > 本项目免费，仅供学习交流，禁止商业用途。使用可能导致游戏账号被封禁，请先阅读应用内声明。角色、皮肤等修改主要影响本地显示，不代表账号实际拥有这些内容，也不保证其他玩家看到相同效果。
 
@@ -18,7 +18,7 @@
 
 ## 二、下载安装包
 
-如果你有这个私有仓库的访问权限，可以登录 GitHub，进入仓库的 [Actions 页面](https://github.com/YeFeng233/MajsoulMax-Android/actions)，打开一次成功完成的 **Build APK** 任务，在页面底部下载 `majsoulmax-apk` 构建产物。解压后安装其中的 release APK。
+打开项目的 [Releases 下载页面](https://github.com/YeFeng233/MajsoulMax-rs-Android/releases/latest)，在最新正式版本下展开 **Assets（资源）**，下载以 `.apk` 结尾的安装包，直接在手机上安装。一个 APK 同时包含 arm64-v8a 和 armeabi-v7a，无需另外选择架构。请不要把 `Source code` 源码压缩包当作安装包。
 
 手机提示禁止安装未知应用时，按系统提示为当前浏览器或文件管理器允许本次安装。安装完成后，应用包名为 `com.yefeng.majmax`。
 
@@ -124,13 +124,13 @@ Conversun Hub 会显示为不可用：当前预设仅适用于 Conversun 仓库�
 
 项目使用 Kotlin 和 Compose 编写 Android 界面，集成 [MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs)、[mihomo](https://github.com/MetaCubeX/mihomo) 和 [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)。更详细的实现说明见 [架构文档](docs/ARCHITECTURE.md)。
 
-仓库的 `Build APK` 工作流可以自动构建，也可以从 Actions 手动运行。产物仅包含 `arm64-v8a` 和 `armeabi-v7a`。Release 使用仓库 Secrets 中的 `ANDROID_KEYSTORE_BASE64` 和 `CI_KEYSTORE_PASSWORD` 固定签名；请妥善保存密钥，保持后续覆盖安装所用签名一致。
+仓库的 `Build APK` 工作流可以自动构建，也可以从 Actions 手动运行。推送与应用版本一致的 `v` 开头标签（例如 `v1.1.1`）后，工作流会构建固定签名的 APK，并自动发布到 Releases；普通分支构建只保存 Actions 产物。产物仅包含 `arm64-v8a` 和 `armeabi-v7a`。Release 使用仓库 Secrets 中的 `ANDROID_KEYSTORE_BASE64` 和 `CI_KEYSTORE_PASSWORD` 固定签名；请妥善保存密钥，保持后续覆盖安装所用签名一致。
 
 本地构建需要 JDK 17、Android SDK、NDK 27、CMake 3.22.1、支持 Rust 2024 edition 的 Rust 工具链、cargo-ndk、protoc，以及脚本所需的 Bash 等工具。先递归拉取子模块，再依次运行原生组件构建脚本和 Gradle：
 
 ```bash
-git clone --recursive https://github.com/YeFeng233/MajsoulMax-Android.git
-cd MajsoulMax-Android
+git clone --recursive https://github.com/YeFeng233/MajsoulMax-rs-Android.git
+cd MajsoulMax-rs-Android
 export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
 ./scripts/fetch-mihomo.sh
 ./scripts/build-tun2socks.sh
@@ -138,7 +138,7 @@ export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
 ./gradlew assembleDebug
 ```
 
-私有仓库需要先配置有访问权限的 GitHub 身份。具体工具版本以 [构建工作流](.github/workflows/build.yml) 为准。
+公开仓库可以直接克隆。具体工具版本以 [构建工作流](.github/workflows/build.yml) 为准。
 
 当前 Rust 上游固定在 0.6.10，Android 集成通过构建脚本应用下载镜像补丁。不要直接替换为较新上游版本而跳过兼容性检查，JNI 接口、协议和资源格式都可能变化。
 

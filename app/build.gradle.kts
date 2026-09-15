@@ -22,8 +22,8 @@ android {
         applicationId = "com.yefeng.majmax"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.1.1"
 
         ndk {
             abiFilters += shippedAbis
@@ -47,8 +47,7 @@ android {
     }
 
     signingConfigs {
-        // A throwaway key so that `assembleRelease` produces an installable APK in
-        // CI. Override with your own keystore for anything you actually publish.
+        // A fixed repository key keeps release updates compatible with installed APKs.
         create("ci") {
             val ks = rootProject.file("ci-keystore.jks")
             if (ks.exists()) {
