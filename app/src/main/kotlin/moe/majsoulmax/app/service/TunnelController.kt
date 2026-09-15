@@ -1,5 +1,8 @@
 package moe.majsoulmax.app.service
 
+import android.app.ActivityManager
+import kotlinx.coroutines.*
+import moe.majsoulmax.app.data.TunnelStatus
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
@@ -13,6 +16,8 @@ import android.util.Log
 object TunnelController {
 
     private const val TAG = "TunnelController"
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var pendingStart: Job? = null
 
     /**
      * @return the consent intent to launch, or null when permission is already
@@ -26,32 +31,37 @@ object TunnelController {
         null
     }
 
-    fun start(context: Context) {
-        val intent = Intent(context, MajsoulVpnService::class.java)
-            .setAction(MajsoulVpnService.ACTION_START)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
+    fun start(context: Context) = requestStart(context, proxyOnly = false)
+
+    fun startProxyOnly(context: Context) = requestStart(context, proxyOnly = true)
+
+    private fun requestStart(context: Context, proxyOnly: Boolean) {
+        val app = context.applicationContext
+        pendingStart?.cancel()
+        pendingStart = scope.launch {
+            // STOPPED is published immediately before core exit. Wait for that
+            // exit, including a STOPPING run, instead of racing its final cleanup.
+            val ready = withTimeoutOrNull(15_000L) {
+                while (coreProcessExists(app) && !TunnelStatus.read(app).stage.isOn) delay(100)
+                true
+            } ?: false
+            if (!ready) {
+                Log.w(TAG, "old core is still stopping; refusing overlapping start")
+                return@launch
+            }
+            val intent = Intent(app, MajsoulVpnService::class.java)
+                .setAction(MajsoulVpnService.ACTION_START)
+                .putExtra(MajsoulVpnService.EXTRA_PROXY_ONLY, proxyOnly)
+            app.startForegroundService(intent)
         }
     }
 
-    /**
-     * Starts only the MITM proxy — no VPN consent, no tun, no kernel. Used by the
-     * built-in browser, which reaches the proxy through a WebView proxy override.
-     */
-    fun startProxyOnly(context: Context) {
-        val intent = Intent(context, MajsoulVpnService::class.java)
-            .setAction(MajsoulVpnService.ACTION_START)
-            .putExtra(MajsoulVpnService.EXTRA_PROXY_ONLY, true)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.startForegroundService(intent)
-        } else {
-            context.startService(intent)
-        }
-    }
+    private fun coreProcessExists(context: Context): Boolean =
+        context.getSystemService(ActivityManager::class.java).runningAppProcesses.orEmpty()
+            .any { it.processName == context.packageName + ":core" }
 
     fun stop(context: Context) {
+        pendingStart?.cancel()
         val intent = Intent(context, MajsoulVpnService::class.java)
             .setAction(MajsoulVpnService.ACTION_STOP)
         // The service is already foreground at this point, so a plain start is

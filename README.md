@@ -166,3 +166,8 @@ CDN GHProxy (`cdn.gh-proxy.org`), Cors Proxy (`cors.isteed.cc`), and GH DDLC
 Conversun repositories, whereas protocol assets come from Xerxes-2/AutoLiqi.
 Mirror service definitions were checked against
 https://github.com/conversun/fnos-store/blob/main/internal/config/config.go.
+
+Shutdown waits for startup cancellation before releasing the tunnel, kernel and
+MITM core. A 10-second native shutdown deadline forcibly releases the core if a
+JNI join stalls. Restart waits for the old core process to exit; Meta port checks
+allow TCP TIME_WAIT reuse while rejecting active listeners.

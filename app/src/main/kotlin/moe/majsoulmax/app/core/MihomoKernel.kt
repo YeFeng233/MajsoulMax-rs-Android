@@ -2,6 +2,7 @@ package moe.majsoulmax.app.core
 
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import moe.majsoulmax.app.data.TunnelSettings
@@ -74,7 +75,8 @@ object MihomoKernel {
         // make startup appear successful while our listener fails to bind.
         try {
             ServerSocket().use { socket ->
-                socket.reuseAddress = false
+                // Allow restart while closed connections remain in TIME_WAIT.
+                socket.reuseAddress = true
                 socket.bind(InetSocketAddress("127.0.0.1", settings.mixedPort))
             }
         } catch (e: IOException) {
@@ -117,7 +119,7 @@ object MihomoKernel {
                 Log.i(TAG, "Meta kernel is listening on ${settings.mixedPort}")
                 return@withContext null
             }
-            Thread.sleep(POLL_INTERVAL_MS)
+            delay(POLL_INTERVAL_MS)
         }
 
         stopBlocking()
@@ -129,7 +131,6 @@ object MihomoKernel {
 
     fun stopBlocking() {
         val current = process ?: return
-        process = null
         runCatching {
             current.destroy()
             if (!current.waitFor(3, TimeUnit.SECONDS)) {
@@ -137,9 +138,18 @@ object MihomoKernel {
                 current.waitFor(2, TimeUnit.SECONDS)
             }
         }.onFailure { Log.w(TAG, "error while stopping the Meta kernel", it) }
+        check(!current.isAlive) { "Meta kernel did not exit" }
+        if (process === current) process = null
         logPump?.interrupt()
         logPump = null
         Log.i(TAG, "Meta kernel stopped")
+    }
+
+    /** Used by the shutdown deadline before the host process exits. */
+    fun forceStop() {
+        val current = process ?: return
+        current.destroyForcibly()
+        current.waitFor(1, TimeUnit.SECONDS)
     }
 
     private fun portAccepting(port: Int): Boolean = try {

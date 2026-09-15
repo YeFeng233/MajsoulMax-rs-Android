@@ -6,13 +6,14 @@ import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.VpnService
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.os.Process
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
+import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -56,6 +57,8 @@ class MajsoulVpnService : VpnService() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var startJob: Job? = null
+    private val stopping = AtomicBoolean(false)
+    private val finished = AtomicBoolean(false)
 
     /**
      * Must outlive the native tunnel: closing it pulls the descriptor out from
@@ -86,7 +89,7 @@ class MajsoulVpnService : VpnService() {
             }
 
             ACTION_START, null -> {
-                if (stage.isOn) {
+                if (stage.isOn || stopping.get()) {
                     Log.i(TAG, "already ${stage.name.lowercase()}, ignoring start")
                     return START_NOT_STICKY
                 }
@@ -159,15 +162,13 @@ class MajsoulVpnService : VpnService() {
                 if (proxyOnly) mitmAddress else getString(R.string.notif_running_desc, mitmAddress, mixedPort),
             )
             log("=== tunnel is up: mitm=$mitmAddress meta=$mixedPort ===")
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Throwable) {
             val message = e.message ?: e.javaClass.simpleName
             Log.e(TAG, "startup failed", e)
             log("!!! startup failed: $message")
-            teardown()
-            publish(TunnelStatus.Stage.ERROR, message)
-            // The notification is gone with the foreground state; the UI reads
-            // ERROR from status.json and surfaces the reason.
-            stopSelfAndProcess(killProcess = true)
+            shutdown(message)
         }
     }
 
@@ -251,50 +252,51 @@ class MajsoulVpnService : VpnService() {
     // Shutdown
     // -----------------------------------------------------------------------
 
-    private fun shutdown() {
-        if (stage == TunnelStatus.Stage.STOPPED) {
-            stopSelfAndProcess(killProcess = true)
-            return
-        }
+    private fun shutdown(failure: String? = null) {
+        if (!stopping.compareAndSet(false, true)) return
         publish(TunnelStatus.Stage.STOPPING, getString(R.string.status_stopping))
         startJob?.cancel()
-        scope.launch {
+
+        // JNI joins are blocking and cannot be interrupted by coroutine timeout.
+        // This independent deadline also covers destruction and startup failures.
+        Thread({
+            Thread.sleep(STOP_DEADLINE_MS)
+            if (!finished.get()) {
+                Log.w(TAG, "native shutdown deadline reached; terminating core")
+                runCatching { MihomoKernel.forceStop() }
+                runCatching { tunnel?.close() }
+                finishShutdown(failure)
+            }
+        }, "tunnel-stop-deadline").apply { isDaemon = true }.start()
+
+        scope.launch(NonCancellable + Dispatchers.IO) {
+            // Never release resources concurrently with a still-starting kernel.
+            startJob?.join()
             teardown()
-            publish(TunnelStatus.Stage.STOPPED, getString(R.string.status_stopped))
-            stopSelfAndProcess(killProcess = true)
+            finishShutdown(failure)
         }
     }
 
-    /** Reverse order of startup; every step is independently failure-tolerant. */
-    private suspend fun teardown() = withContext(Dispatchers.IO) {
+    private suspend fun teardown() = withContext(NonCancellable + Dispatchers.IO) {
         runCatching { Tun2SocksNative.stop() }.onFailure { Log.w(TAG, "tunnel stop failed", it) }
         runCatching { tunnel?.close() }.onFailure { Log.w(TAG, "tun close failed", it) }
         tunnel = null
         runCatching { MihomoKernel.stopBlocking() }
-            .onFailure { Log.w(TAG, "kernel stop failed", it) }
+            .onFailure { Log.w(TAG, "kernel stop failed", it); runCatching { MihomoKernel.forceStop() } }
         runCatching { MitmNative.stop() }.onFailure { Log.w(TAG, "MITM stop failed", it) }
         log("=== tunnel stopped ===")
     }
 
-    /**
-     * @param killProcess reclaims the Rust core's leaked settings and descriptor
-     *        pool. Safe because nothing else lives in `:core`.
-     */
-    private fun stopSelfAndProcess(killProcess: Boolean) {
+    private fun finishShutdown(failure: String?) {
+        if (!finished.compareAndSet(false, true)) return
+        publish(
+            if (failure == null) TunnelStatus.Stage.STOPPED else TunnelStatus.Stage.ERROR,
+            failure ?: getString(R.string.status_stopped),
+        )
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         stopSelf()
-        if (killProcess) {
-            // Deliberately NOT on `scope`: stopSelf() leads to onDestroy(), which
-            // cancels that scope, so a coroutine here would never fire and the
-            // process would live on holding the Rust core's leaked settings.
-            Handler(Looper.getMainLooper()).postDelayed(
-                {
-                    // Give the status broadcast a moment to reach the UI process.
-                    Process.killProcess(Process.myPid())
-                },
-                PROCESS_KILL_DELAY_MS,
-            )
-        }
+        // No delayed kill: it could otherwise terminate a newly started service.
+        Process.killProcess(Process.myPid())
     }
 
     override fun onRevoke() {
@@ -304,21 +306,8 @@ class MajsoulVpnService : VpnService() {
     }
 
     override fun onDestroy() {
-        val wasActive = stage != TunnelStatus.Stage.STOPPED && stage != TunnelStatus.Stage.ERROR
-        if (wasActive) {
-            // Torn down without going through ACTION_STOP: still release natives.
-            runCatching { Tun2SocksNative.stop() }
-            runCatching { tunnel?.close() }
-            runCatching { MihomoKernel.stopBlocking() }
-            runCatching { MitmNative.stop() }
-            publish(TunnelStatus.Stage.STOPPED, getString(R.string.status_stopped))
-            // Reclaim the Rust core's leaked settings on this path as well;
-            // nothing else lives in `:core`.
-            Handler(Looper.getMainLooper()).postDelayed(
-                { Process.killProcess(Process.myPid()) },
-                PROCESS_KILL_DELAY_MS,
-            )
-        }
+        // Cleanup is non-cancellable and continues even after the service scope ends.
+        if (!finished.get()) shutdown()
         scope.cancel()
         super.onDestroy()
     }
@@ -378,6 +367,7 @@ class MajsoulVpnService : VpnService() {
         modEnabled: Boolean = false,
         helperEnabled: Boolean = false,
     ) {
+        if (stopping.get() && (newStage == TunnelStatus.Stage.STARTING || newStage == TunnelStatus.Stage.RUNNING)) return
         stage = newStage
         TunnelStatus.publish(
             this,
@@ -403,7 +393,7 @@ class MajsoulVpnService : VpnService() {
         private const val TAG = "MajsoulVpn"
         private const val NOTIFICATION_ID = 0x4d41
         private const val MITM_START_TIMEOUT_MS = 120_000L
-        private const val PROCESS_KILL_DELAY_MS = 400L
+        private const val STOP_DEADLINE_MS = 10_000L
 
         const val ACTION_START = "moe.majsoulmax.app.action.START"
         const val EXTRA_PROXY_ONLY = "proxyOnly"

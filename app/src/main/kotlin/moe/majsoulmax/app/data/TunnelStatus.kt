@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.util.AtomicFile
 import android.util.Log
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.channels.awaitClose
@@ -68,7 +69,7 @@ data class TunnelStatus(
         fun read(context: Context): TunnelStatus {
             val file: File = Paths.statusFile(context)
             return try {
-                if (file.exists()) JSON.decodeFromString(file.readText()) else TunnelStatus()
+                if (file.exists()) JSON.decodeFromString(AtomicFile(file).openRead().bufferedReader().use { it.readText() }) else TunnelStatus()
             } catch (e: Exception) {
                 Log.w(TAG, "status.json unreadable", e)
                 TunnelStatus()
@@ -80,7 +81,15 @@ data class TunnelStatus(
             try {
                 val file = Paths.statusFile(context)
                 file.parentFile?.mkdirs()
-                file.writeText(JSON.encodeToString(status))
+                val atomic = AtomicFile(file)
+                val stream = atomic.startWrite()
+                try {
+                    stream.write(JSON.encodeToString(status).toByteArray(Charsets.UTF_8))
+                    atomic.finishWrite(stream)
+                } catch (e: Exception) {
+                    atomic.failWrite(stream)
+                    throw e
+                }
             } catch (e: Exception) {
                 Log.w(TAG, "cannot persist status.json", e)
             }
