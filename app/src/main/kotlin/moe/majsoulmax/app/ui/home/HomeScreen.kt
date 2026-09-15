@@ -105,7 +105,7 @@ fun HomeScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        PowerCard(status = status, enabled = !checks.blocking, onToggle = ::toggle)
+        PowerCard(status = status, enabled = status.isOn || !checks.blocking, onToggle = ::toggle)
 
         if (status.stage == TunnelStatus.Stage.ERROR && status.message.isNotBlank()) {
             ErrorCard(message = status.message, onOpenLogs = onOpenLogs)
