@@ -69,7 +69,7 @@ data class TunnelStatus(
         fun read(context: Context): TunnelStatus {
             val file: File = Paths.statusFile(context)
             return try {
-                if (file.exists()) JSON.decodeFromString(AtomicFile(file).openRead().bufferedReader().use { it.readText() }) else TunnelStatus()
+                if (file.exists()) JSON.decodeFromString(file.readText()) else TunnelStatus()
             } catch (e: Exception) {
                 Log.w(TAG, "status.json unreadable", e)
                 TunnelStatus()

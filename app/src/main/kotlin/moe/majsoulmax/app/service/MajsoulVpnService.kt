@@ -361,6 +361,7 @@ class MajsoulVpnService : VpnService() {
             )
             .build()
 
+    @Synchronized
     private fun publish(
         newStage: TunnelStatus.Stage,
         message: String,
