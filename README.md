@@ -1,173 +1,149 @@
-# 雀魂 Max for Android
+# 雀魂 Max for Android 使用教程
 
-An all-in-one Android front end for [MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs).
-Upstream is a desktop MITM proxy that unlocks characters, skins, decorations and
-titles in Mahjong Soul; on Android it has so far meant Termux plus NekoBox plus a
-manually installed certificate plus hand-edited JSON. This app collapses all of
-that into one install:
+雀魂 Max 将代理内核和功能配置放进一个 Android 应用中。安装后，你可以在手机上完成证书安装、启动代理和打开雀魂，不必再单独配置 Termux 或另一款 VPN 工具。
 
-1. **One-tap certificate install** — jumps straight to the system CA installer,
-   with per-ROM fallbacks and a live read-back of whether the certificate is
-   actually trusted.
-2. **Bundled Meta (mihomo) kernel** — the app owns a `VpnService`, ships the
-   kernel, generates the routing rules, and keeps its own traffic out of the
-   tunnel so the proxy cannot loop back on itself. No NekoBox, no Termux.
-3. **Interactive configuration** — typed forms for `settings.json` and
-   `settings.mod.json`, a validating raw-JSON editor, and separate controls for
-   the tunnel itself.
+这份教程按当前 1.1.0 版本编写。第一次使用时，按下面的顺序操作即可。
 
-Upstream is consumed **unmodified**, as a git submodule, through its public Rust
-API. The submodule is pinned to 0.6.10 (bdc016f), matching this JNI bridge and the lqc.lqbin asset format. Upstream 0.7.0 changes both and requires an Android integration migration before upgrading.
+> 本项目免费，仅供学习交流，禁止商业用途。使用可能导致游戏账号被封禁，请先阅读应用内声明。角色、皮肤等修改主要影响本地显示，不代表账号实际拥有这些内容，也不保证其他玩家看到相同效果。
 
-> This project is free and open source. If you paid for it, you were scammed.
-> For study and personal use only. Using it may get your account banned; neither
-> the upstream author nor this packaging takes any responsibility. Licensed
-> GPL-3.0, same as upstream.
+## 一、安装前准备
 
-## How it fits together
+你需要一台 Android 8.0 或更高版本的 ARM 手机。本项目只构建 `arm64-v8a` 和 `armeabi-v7a`，不提供 x86 模拟器版本。
 
-```
-┌──────────────┐        ┌──────────┐      ┌──────────────┐      ┌───────────┐
-│ game / other │  tun   │ hev-     │socks5│ Meta kernel  │ http │ MITM core │
-│ apps         ├───────►│ socks5-  ├─────►│ (mihomo)     ├─────►│ (Rust)    ├──► internet
-└──────────────┘        │ tunnel   │      │  rules       │      └───────────┘
-                        └──────────┘      └──────┬───────┘
-                                                 │ DIRECT (everything else)
-                                                 ▼
-```
+请先安装雀魂游戏本体。当前固定支持的游戏包名是 `com.soulgamechst.majsoul`，其他渠道包、克隆应用或不同包名的客户端不在固定代理范围内。游戏可以从[雀魂官网](https://www.maj-soul.com/#/home)获取。
 
-* **MITM core** — upstream's crate, cross-compiled to a JNI shared library
-  (`rust/majsoul-jni`). Kotlin drives it through `start`/`stop`/`state`.
-* **Meta kernel** — the official mihomo Android binary, shipped inside `jniLibs`
-  (the only place an app may execute from) and driven as a child process over its
-  documented YAML config.
-* **tun bridge** — hev-socks5-tunnel, which owns the user-space TCP/IP stack
-  between the tun descriptor and the kernel's SOCKS5 port.
-* **Routing** — `DOMAIN-KEYWORD` rules for `majsoul` / `maj-soul` /
-  `mahjongsoul` go to the MITM proxy, everything else goes DIRECT. Because the
-  tun hands us IP packets, the kernel's TLS-SNI sniffer recovers the hostname so
-  those domain rules can match at all.
-* **Loopback protection** — the VPN excludes this app's own package, so the
-  kernel's outbound connections and the proxy's upstream connections can never
-  re-enter the tunnel. This replaces upstream's `PROCESS-NAME` rule for desktop.
+开始前，先关闭手机上其他 VPN、Clash、Mihomo，以及 Root 模式的透明代理。仅关闭它们的界面不一定停止后台转发；应使用对应工具的停止服务功能，确认内核和转发规则都已退出。
 
-The tunnel runs in a separate `:core` process, which is killed on stop. That is
-deliberate: the Rust core intentionally leaks a `&'static Settings` (plus a large
-protobuf descriptor pool) per run, and letting the process exit reclaims it while
-also guaranteeing the next start reads fresh config from disk.
+本应用通过 Android 的 VPN 功能接管指定游戏流量，不是提供远程节点的网络加速器。安装和启动本应用本身不要求 Root。
 
-`docs/ARCHITECTURE.md` goes into more detail, including the failure modes each
-design decision is avoiding.
+## 二、下载安装包
 
-## Building
+如果你有这个私有仓库的访问权限，可以登录 GitHub，进入仓库的 [Actions 页面](https://github.com/YeFeng233/MajsoulMax-Android/actions)，打开一次成功完成的 **Build APK** 任务，在页面底部下载 `majsoulmax-apk` 构建产物。解压后安装其中的 release APK。
 
-The APK is not committed. Two ways to get one:
+手机提示禁止安装未知应用时，按系统提示为当前浏览器或文件管理器允许本次安装。安装完成后，应用包名为 `com.yefeng.majmax`。
 
-### GitHub Actions (no local toolchain)
+后续更新请使用同一仓库固定签名的安装包，直接覆盖安装。不要为了更新先卸载应用，否则可能丢失已有配置。
 
-Push the repo and the workflow in `.github/workflows/build.yml` does everything:
-installs the NDK, protoc and Rust Android targets, downloads the Meta kernel,
-builds hev-socks5-tunnel and the Rust core, then assembles and uploads a signed
-APK as a build artifact. `workflow_dispatch` lets you pin a specific mihomo
-release or build a debug variant.
+## 三、首次打开与证书安装
 
-Release builds use a fixed repository signing key from the ANDROID_KEYSTORE_BASE64 and CI_KEYSTORE_PASSWORD Actions secrets. Keep these secrets consistent so updates to com.yefeng.majmax retain app data.
+第一次启动时，先阅读声明，再决定是否同意继续。首页会显示运行所需组件和证书的检查结果。
 
-### Locally
+进入底部的「证书」页面，点击「安装证书」，根据系统提示完成安装。系统可能要求输入锁屏密码，并提示网络可能被监控：这是安装 CA 证书时的系统提示。这个证书用于让代理处理游戏的加密连接，请只安装你信任的项目所提供的证书。
 
-Prerequisites: JDK 17, Android SDK with NDK 27, CMake 3.22, Rust 1.85+ with
-`cargo-ndk`, `protoc`, and `jq`.
+如果点击后没有弹出安装页面，可以先导出证书，再打开系统证书设置。在手机设置中找到类似「安全 → 加密与凭据 → 安装证书 → CA 证书」的入口，选择导出的 `hudsucker.cer`。各品牌手机的菜单名称可能不同。
+
+安装后返回应用，查看证书状态是否已更新。首页显示已信任，表示本应用检测到了证书；不同游戏版本对用户证书的信任策略可能不同，这个状态不等于所有客户端都能兼容。
+
+## 四、设置功能并启动游戏
+
+打开「配置 → 基础」，确认「启用 Mod」已经打开。如果只是使用角色、皮肤、装扮等功能，没有自行部署小助手服务，可以关闭「启用助手转发」。修改后点击保存。
+
+第一次使用建议先保留其他默认设置，确认可以正常登录后，再逐项调整。
+
+回到首页，打开顶部代理开关。系统首次询问是否允许建立 VPN 连接时，确认后等待应用显示运行状态。启动期间可能会检查资源更新，请等待完成，不要连续反复点击开关。
+
+代理运行后，首页下方会出现游戏卡片，点击「启动雀魂」即可打开游戏本体。如果没有安装支持的客户端，应用会引导打开官网下载页面；安装好游戏后再回来启动代理。
+
+**选择游戏线路时，请留意线路差异。** 在本项目这次手机实测中，用户确认不选择「线路一」时，登录和功能都能正常使用。如果能登录但功能没有生效，先换一条其他线路并重新登录。这是当前测试设备上的结果，不代表所有客户端版本和网络环境都相同；线路一未生效的具体原因尚未单独验证。
+
+应用的 VPN 范围固定为雀魂本体，没有「分应用」选择页面，普通浏览器和其他应用不会被本应用的 VPN 接管。
+
+## 五、日常如何使用
+
+每次准备使用时，先停止其他代理，再启动雀魂 Max，等首页显示运行后打开游戏。若游戏之前已在后台运行，建议完全退出游戏后重新打开，让登录连接重新经过代理。
+
+用完后回到首页关闭代理开关，等待显示已停止。只退出游戏、切换到桌面或划掉应用界面，不等于已关闭 VPN。需要使用其他代理时，先确认本应用已停止，再启动另一款工具。
+
+修改配置后，需要重新启动代理才能让运行中的内核加载新设置。按页面提示保存，再使用重启入口，或在首页关闭后重新打开。必要时也重新打开游戏。
+
+## 六、配置页面怎么用
+
+### 基础
+
+「启用 Mod」控制角色、皮肤、装扮和称号等修改功能。「自动更新」用于启动时检查相关游戏资源和协议数据。
+
+「启用助手转发」是把指定游戏消息发送给你自己部署的助手服务，不会自动在手机上安装或运行助手。`apiUrl` 必须填写手机能够访问的服务地址。`localhost` 表示手机自己，如果服务实际运行在电脑上，不能直接使用 `https://localhost:12121/`。没有助手服务时，关闭这个开关即可。
+
+### Mod
+
+这里可以调整主角色、皮肤映射、称号、展示预设、收藏角色和加载背景等。部分项目需要填写数字 ID，请在明确 ID 含义后再修改，避免随意输入导致显示异常。修改完成后保存并重启代理。
+
+### 代理
+
+「Meta 混合端口」是手机本地代理监听的端口。例如其他工具占用了默认端口时，可以改用未被占用的 `7777` 或 `8888`。端口并不是游戏线路，也不是远程服务器地址。
+
+代理页还提供域名嗅探、绕过局域网、IPv6 和日志等级等设置。初次使用保持默认即可。代理页的设置会写入配置，重启代理后生效。
+
+### 原始 JSON
+
+熟悉配置文件的用户可以直接编辑 JSON。保存前需要通过格式校验；不熟悉这些字段时，优先使用前面的可视化设置。
+
+## 七、GitHub 下载加速
+
+如果启动时下载协议文件很慢，可以进入「配置 → 基础」，找到 GitHub 下载加速，选择一个镜像，保存后重启代理。
+
+当前内置 GH-Proxy、GHFast、GHProxy.net、CDN GHProxy、Cors Proxy 和 GH DDLC，也可以填写自定义 HTTPS 镜像前缀。镜像可用性会变化，某个站点失败时可以换一个，或恢复 GitHub 直连。
+
+Conversun Hub 会显示为不可用：当前预设仅适用于 Conversun 仓库，而本应用的协议文件来自 `Xerxes-2/AutoLiqi`。
+
+这个设置只影响支持的 GitHub Release 资源下载，不会加速游戏登录、改变游戏线路，也不会代理所有 GitHub 请求。Release 元数据仍直接向 GitHub 查询；下载失败或内容校验失败时会尝试回退直连。GitHub Token 不会发送给镜像站。
+
+## 八、遇到问题时
+
+### 开启代理后不能登录，关闭后可以
+
+先确认其他 VPN 或 Root 代理已经彻底停止。我们在实测中遇到过：其他代理的界面已关闭，但 Root Clash 进程和路由仍然存在，本应用的出站连接又被送入它的虚拟网卡，造成超时。停止那个后台内核后，普通网络和雀魂登录都恢复正常。
+
+仅更换本地端口无法解决这种路由冲突。先让手机只运行本应用，再重新打开游戏测试。
+
+### 可以登录，但角色或皮肤等功能没有生效
+
+先检查「启用 Mod」是否打开，配置是否保存，并重启代理和游戏。然后尝试切换游戏线路；本次实测中，避开线路一后功能正常。仍然失败时，查看日志是否有协议解析错误，不要仅凭未生效就反复安装证书。
+
+### 提示端口被占用
+
+检查是否有其他代理仍在运行。如果占用来自另一款工具，可以先停止它，或在配置中更换 Meta 混合端口。正常停止后应等待页面显示已停止，再重新启动。
+
+当前版本已修复停止后核心清理及快速重启的相关问题。如果仍然出现占用，请记录端口号和日志中的报错，便于区分其他进程占用与服务没有退出。
+
+### 日志提示小助手连接失败
+
+如果地址是 `https://localhost:12121/`，请确认手机上确实运行了对应服务。没有部署助手时关闭「启用助手转发」；已经部署时检查地址、协议和网络可达性。助手连接失败需要与 Mod 功能分别排查。
+
+### 更新失败或提示协议解析错误
+
+检查网络，必要时更换下载镜像。自动更新能刷新部分资源，但不是所有协议变更都能通过下载文件解决：当前上游核心的协议描述包含构建时编译的数据，较大的协议变化可能需要更新 APK。
+
+### 去哪里看错误信息
+
+打开底部「日志」页面，重点查看刚刚启动或复现故障时的错误。反馈时说明应用版本、游戏版本、所选线路、是否运行其他代理，以及故障发生的步骤。分享日志前，请去掉账号信息、Token 和其他私人内容。
+
+「关于」页面可以查看版本、项目链接和使用声明。
+
+## 九、给需要自行构建的用户
+
+项目使用 Kotlin 和 Compose 编写 Android 界面，集成 [MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs)、[mihomo](https://github.com/MetaCubeX/mihomo) 和 [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel)。更详细的实现说明见 [架构文档](docs/ARCHITECTURE.md)。
+
+仓库的 `Build APK` 工作流可以自动构建，也可以从 Actions 手动运行。产物仅包含 `arm64-v8a` 和 `armeabi-v7a`。Release 使用仓库 Secrets 中的 `ANDROID_KEYSTORE_BASE64` 和 `CI_KEYSTORE_PASSWORD` 固定签名；请妥善保存密钥，保持后续覆盖安装所用签名一致。
+
+本地构建需要 JDK 17、Android SDK、NDK 27、CMake 3.22.1、支持 Rust 2024 edition 的 Rust 工具链、cargo-ndk、protoc，以及脚本所需的 Bash 等工具。先递归拉取子模块，再依次运行原生组件构建脚本和 Gradle：
 
 ```bash
-git clone --recursive https://github.com/<you>/MajsoulMax-Android.git
+git clone --recursive https://github.com/YeFeng233/MajsoulMax-Android.git
 cd MajsoulMax-Android
-export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018
-
-./scripts/fetch-mihomo.sh        # -> app/src/main/jniLibs/<abi>/libmihomo.so
-./scripts/build-tun2socks.sh     # -> app/src/main/jniLibs/<abi>/libhev-socks5-tunnel.so
-./scripts/build-rust.sh          # -> app/build/generated/jniLibs/<abi>/libmajsoulmax.so
-
+export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.2.12479018"
+./scripts/fetch-mihomo.sh
+./scripts/build-tun2socks.sh
+./scripts/build-rust.sh
 ./gradlew assembleDebug
 ```
 
-`./gradlew assembleDebug` on its own also invokes `build-rust.sh` through
-`preBuild`; set `-Pmajsoulmax.buildRust=false` to skip that when the library is
-already built. The build warns rather than fails when a native payload is
-missing, so you can iterate on the UI without a full toolchain — the VPN just
-refuses to start and says why.
+私有仓库需要先配置有访问权限的 GitHub 身份。具体工具版本以 [构建工作流](.github/workflows/build.yml) 为准。
 
-ABIs shipped: `arm64-v8a`, `armeabi-v7a`.
+当前 Rust 上游固定在 0.6.10，Android 集成通过构建脚本应用下载镜像补丁。不要直接替换为较新上游版本而跳过兼容性检查，JNI 接口、协议和资源格式都可能变化。
 
-## Using it
+## 致谢与许可
 
-1. Open the app and accept the disclaimer.
-2. **Cert** tab → *Install certificate*. The pre-flight checklist on Home turns
-   green once the system actually trusts it.
-3. **Config** tab → set what you want unlocked. `Mod` covers characters, skins,
-   titles and decorations; `Proxy` covers ports, routed domains and DNS.
-4. Home → flip the switch, grant the VPN prompt, launch Mahjong Soul.
+感谢 [Xerxes-2/MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs)、[MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) 和 [heiher/hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) 提供核心组件。
 
-VPN routing is fixed to `com.soulgamechst.majsoul`. Other applications never
-enter this VPN, and legacy app-selection settings are ignored. Once running,
-the game card launches the installed client. If it is missing, the app opens
-https://www.maj-soul.com/#/home in the browser instead of starting a VPN.
-The About tab includes version information, project links and the disclaimer.
-
-Config → General → GitHub download acceleration selects a mirror for AutoLiqi
-release assets. The default is direct GitHub. Release metadata queries remain
-direct; GitHub tokens are never sent to mirrors. Invalid/failed mirror responses
-fall back to GitHub. Custom mirrors use an HTTPS prefix followed by the full
-GitHub URL. Game-hosted resources are unaffected. Save and restart to apply.
-
-The pinned Rust dependency is extended by `patches/github-download-mirror.patch`,
-applied idempotently by `scripts/build-rust.sh`. Keep this patch in sync when
-updating the submodule. Downloaded protocol files are checked before replacement.
-
-## Things worth knowing
-
-* **Only line 1.** Same limitation as upstream on Android.
-* **Unlocks are local.** Other players still see your real character.
-* **`liqi.desc` is compiled in.** Upstream embeds the protobuf descriptor at
-  build time, so auto-update refreshes `liqi.json` and `lqc.lqbin` but a protocol
-  change that alters the descriptor needs a rebuild of the APK.
-* **The tun bridge is the one external native contract.** Everything else talks
-  to its dependency over a stable interface (Rust public API, mihomo's YAML
-  config). `app/src/main/cpp/tun2socks_jni.c` declares two hev-socks5-tunnel
-  symbols directly; if upstream ever renames them, that file and
-  `scripts/build-tun2socks.sh` are the only places to touch, and a build without
-  the payload degrades to a clear runtime error rather than a crash.
-
-## Layout
-
-```
-app/                        Android app (Kotlin, Compose, Material 3)
-  src/main/kotlin/.../core     natives, assets, certificate, kernel supervisor
-  src/main/kotlin/.../data     config repository, tunnel settings, status IPC
-  src/main/kotlin/.../service  VpnService, notification, controller
-  src/main/kotlin/.../ui       Compose screens
-  src/main/cpp                 JNI shim for hev-socks5-tunnel
-rust/majsoul-jni/           JNI bridge over the upstream crate
-external/MajsoulMax-rs      upstream, unmodified (submodule)
-external/hev-socks5-tunnel  tun bridge (submodule)
-scripts/                    native build/fetch scripts
-```
-
-## Credits
-
-* [Xerxes-2/MajsoulMax-rs](https://github.com/Xerxes-2/MajsoulMax-rs) — the proxy
-  and mod logic this app packages.
-* [MetaCubeX/mihomo](https://github.com/MetaCubeX/mihomo) — the Meta kernel.
-* [heiher/hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) — the
-  tun bridge.
-
-Mirror presets: GH-Proxy (`gh-proxy.com`), GHFast (`ghfast.top`), GHProxy.net,
-CDN GHProxy (`cdn.gh-proxy.org`), Cors Proxy (`cors.isteed.cc`), and GH DDLC
-(`gh.ddlc.top`). Conversun Hub is shown as unavailable because it only permits
-Conversun repositories, whereas protocol assets come from Xerxes-2/AutoLiqi.
-Mirror service definitions were checked against
-https://github.com/conversun/fnos-store/blob/main/internal/config/config.go.
-
-Shutdown waits for startup cancellation before releasing the tunnel, kernel and
-MITM core. A 10-second native shutdown deadline forcibly releases the core if a
-JNI join stalls. Restart waits for the old core process to exit; Meta port checks
-allow TCP TIME_WAIT reuse while rejecting active listeners.
+项目按 GPL-3.0 许可发布，详见仓库中的 [许可说明](LICENSE.note)。
