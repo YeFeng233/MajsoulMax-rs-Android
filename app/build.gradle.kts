@@ -19,7 +19,7 @@ android {
     ndkVersion = "27.2.12479018"
 
     defaultConfig {
-        applicationId = "moe.majsoulmax.app"
+        applicationId = "com.yefeng.majmax"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
