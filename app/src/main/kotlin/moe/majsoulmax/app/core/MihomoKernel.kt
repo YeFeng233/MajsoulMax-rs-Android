@@ -8,6 +8,7 @@ import moe.majsoulmax.app.data.TunnelSettings
 import java.io.File
 import java.io.IOException
 import java.net.InetSocketAddress
+import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.TimeUnit
 
@@ -66,6 +67,19 @@ object MihomoKernel {
             // kernel was never extracted to disk.
             return@withContext "libmihomo.so is not executable; the APK must be " +
                 "built with jniLibs.useLegacyPackaging = true"
+        }
+
+        // A successful connection alone cannot tell whether this is our kernel.
+        // Refuse an occupied port before spawning, so another local proxy cannot
+        // make startup appear successful while our listener fails to bind.
+        try {
+            ServerSocket().use { socket ->
+                socket.reuseAddress = false
+                socket.bind(InetSocketAddress("127.0.0.1", settings.mixedPort))
+            }
+        } catch (e: IOException) {
+            return@withContext "Meta port ${settings.mixedPort} is unavailable; " +
+                "choose another mixed port in configuration (${e.message})"
         }
 
         val home = Paths.kernelHome(context).apply { mkdirs() }
@@ -191,7 +205,6 @@ object MihomoKernel {
             appendLine("unified-delay: false")
             appendLine("tcp-concurrent: false")
             appendLine("find-process-mode: off")
-            appendLine("global-client-fingerprint: chrome")
             appendLine("external-controller: ''")
             appendLine("geo-auto-update: false")
             appendLine("profile:")
