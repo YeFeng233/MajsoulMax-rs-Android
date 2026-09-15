@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Only for exporting hudsucker.cer to Downloads on pre-scoped-storage
+         releases; API 29+ goes through MediaStore and needs no permission. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!--
+      Used by the per-app routing picker. An intent query keeps us off the
+      QUERY_ALL_PACKAGES permission, which Play flags and we do not need: we only
+      ever list apps that have a launcher entry.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <!--
+          The certificate installer has no launcher entry, so without these it is
+          invisible to resolveActivity() on Android 11+ and the one-tap install
+          silently degrades to the Settings fallback.
+        -->
+        <intent>
+            <action android:name="android.credentials.INSTALL" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/x-x509-ca-cert" />
+        </intent>
+        <package android:name="com.android.certinstaller" />
+    </queries>
+
+    <application
+        android:name=".App"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:extractNativeLibs="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MajsoulMax"
+        tools:targetApi="35">
+
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.MajsoulMax.Splash"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Built-in browser: works without the VPN by pointing the WebView
+             straight at the MITM proxy. -->
+        <activity
+            android:name=".ui.web.GameActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode"
+            android:exported="false"
+            android:hardwareAccelerated="true"
+            android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.MajsoulMax.Fullscreen"
+            tools:ignore="DiscouragedApi,LockedOrientationActivity" />
+
+        <!--
+          The tunnel lives in its own process. Two reasons:
+            1. the Rust core intentionally leaks a 'static Settings (and a large
+               protobuf descriptor pool) per run, so we reclaim it by letting the
+               process die on stop rather than growing the UI process forever;
+            2. a panic in native code cannot take the UI down with it.
+        -->
+        <service
+            android:name=".service.MajsoulVpnService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:process=":core"
+            android:stopWithTask="false">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Local MITM proxy and rule-based tunnel for Mahjong Soul traffic" />
+        </service>
+
+        <!-- Hands hudsucker.cer to the system certificate installer and the log
+             file to a share target. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.files"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <receiver
+            android:name=".service.TileActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="moe.majsoulmax.app.action.STOP" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>

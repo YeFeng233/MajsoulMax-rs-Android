@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+      The Meta kernel's control endpoint and the MITM proxy both live on
+      loopback and speak plain HTTP; nothing else is allowed in the clear.
+    -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <!-- Required so the built-in WebView honours the hudsucker CA the
+                 user installs into the user trust store. -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

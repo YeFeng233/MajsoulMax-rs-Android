@@ -1,0 +1,42 @@
+[package]
+name = "majsoul-jni"
+version = "1.0.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+description = "Android JNI bridge around the MajsoulMax-rs MITM proxy core"
+publish = false
+
+# Standalone workspace: the upstream crate is consumed as a plain path
+# dependency, not as a workspace member, so upstream stays unpatched.
+[workspace]
+
+[lib]
+name = "majsoulmax"
+crate-type = ["cdylib"]
+
+[dependencies]
+majsoul_max_rs = { path = "../../external/MajsoulMax-rs" }
+
+anyhow = "1"
+jni = "0.21"
+tokio = { version = "1", features = [
+    "macros",
+    "net",
+    "rt-multi-thread",
+    "sync",
+    "time",
+] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = [
+    "env-filter",
+    "fmt",
+    "registry",
+    "std",
+], default-features = false }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "unwind"
+strip = "symbols"
