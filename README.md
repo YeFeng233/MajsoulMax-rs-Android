@@ -17,7 +17,7 @@ that into one install:
    the tunnel itself.
 
 Upstream is consumed **unmodified**, as a git submodule, through its public Rust
-API. Pulling a newer upstream commit is a submodule bump.
+API. The submodule is pinned to 0.6.10 (bdc016f), matching this JNI bridge and the lqc.lqbin asset format. Upstream 0.7.0 changes both and requires an Android integration migration before upgrading.
 
 > This project is free and open source. If you paid for it, you were scammed.
 > For study and personal use only. Using it may get your account banned; neither
