@@ -20,6 +20,19 @@
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
 
+/*
+ * ART looks up JNI_OnLoad through this library's dependency graph. Without our
+ * own entry point, it finds hev's Android wrapper, which tries to register
+ * hev/htproxy/TProxyService (a class this app does not use). We call hev through
+ * its C API and export our JNI methods by name, so no registration is needed.
+ */
+JNIEXPORT jint JNICALL
+JNI_OnLoad(JavaVM *vm, void *reserved)
+{
+    (void) vm;
+    (void) reserved;
+    return JNI_VERSION_1_6;
+}
 /* Return codes shared with Tun2SocksNative.kt */
 #define TUN2SOCKS_OK 0
 #define TUN2SOCKS_ALREADY_RUNNING (-1)
