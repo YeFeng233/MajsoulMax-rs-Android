@@ -12,16 +12,8 @@
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
-    <!--
-      Used by the per-app routing picker. An intent query keeps us off the
-      QUERY_ALL_PACKAGES permission, which Play flags and we do not need: we only
-      ever list apps that have a launcher entry.
-    -->
     <queries>
-        <intent>
-            <action android:name="android.intent.action.MAIN" />
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent>
+        <package android:name="com.soulgamechst.majsoul" />
         <!--
           The certificate installer has no launcher entry, so without these it is
           invisible to resolveActivity() on Android 11+ and the one-tap install

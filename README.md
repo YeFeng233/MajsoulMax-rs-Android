@@ -107,14 +107,21 @@ ABIs shipped: `arm64-v8a`, `armeabi-v7a`.
    titles and decorations; `Proxy` covers ports, routed domains and DNS.
 4. Home → flip the switch, grant the VPN prompt, launch Mahjong Soul.
 
-If the game client ignores user-installed CAs — Android only honours them for
-apps that opt in — use **Open Mahjong Soul** on the Home screen instead. That
-runs the web client in a WebView with a proxy override pointed at the MITM core,
-needs no VPN consent at all, and works because a WebView does honour the user
-trust store.
+VPN routing is fixed to `com.soulgamechst.majsoul`. Other applications never
+enter this VPN, and legacy app-selection settings are ignored. Once running,
+the game card launches the installed client. If it is missing, the app opens
+https://www.maj-soul.com/#/home in the browser instead of starting a VPN.
+The About tab includes version information, project links and the disclaimer.
 
-Per-app routing lives in the **Apps** tab; by default everything except this app
-goes through the tunnel.
+Config → General → GitHub download acceleration selects a mirror for AutoLiqi
+release assets. The default is direct GitHub. Release metadata queries remain
+direct; GitHub tokens are never sent to mirrors. Invalid/failed mirror responses
+fall back to GitHub. Custom mirrors use an HTTPS prefix followed by the full
+GitHub URL. Game-hosted resources are unaffected. Save and restart to apply.
+
+The pinned Rust dependency is extended by `patches/github-download-mirror.patch`,
+applied idempotently by `scripts/build-rust.sh`. Keep this patch in sync when
+updating the submodule. Downloaded protocol files are checked before replacement.
 
 ## Things worth knowing
 

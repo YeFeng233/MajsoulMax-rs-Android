@@ -19,6 +19,8 @@ import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -226,6 +228,11 @@ private fun GeneralTab(viewModel: ConfigViewModel, state: ConfigViewModel.State)
                 value = config.string("liqiVersion", "—"),
             )
         }
+
+        GitHubMirrorPicker(
+            value = config.string("githubMirror"),
+            onChange = { viewModel.edit(which, "githubMirror", jsonOf(it)) },
+        )
 
         SectionCard(title = stringResource(R.string.cfg_github_token)) {
             TextFieldRow(
@@ -645,5 +652,43 @@ private fun EditorScaffold(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun GitHubMirrorPicker(value: String, onChange: (String) -> Unit) {
+    val mirrors = listOf(
+        stringResource(R.string.github_direct) to "",
+        "GH-Proxy" to "https://gh-proxy.com/",
+        "GHFast" to "https://ghfast.top/",
+        "GHProxy.net" to "https://ghproxy.net/",
+        "CDN GHProxy" to "https://cdn.gh-proxy.com/",
+        "GH DDLC" to "https://gh.ddlc.top/",
+    )
+    var expanded by remember { mutableStateOf(false) }
+    var custom by remember { mutableStateOf(false) }
+    val selected = mirrors.firstOrNull { it.second.trimEnd('/') == value.trimEnd('/') }
+    SectionCard(title = stringResource(R.string.github_acceleration)) {
+        Box(Modifier.padding(horizontal = 16.dp)) {
+            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                Text(if (custom || selected == null) stringResource(R.string.github_custom) else selected.first)
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                mirrors.forEach { (label, url) ->
+                    DropdownMenuItem(text = { Text(label) }, onClick = {
+                        onChange(url); custom = false; expanded = false
+                    })
+                }
+                DropdownMenuItem(text = { Text(stringResource(R.string.github_custom)) }, onClick = {
+                    custom = true; expanded = false
+                })
+            }
+        }
+        if (custom || selected == null) {
+            TextFieldRow(label = stringResource(R.string.github_mirror_url), value = value,
+                onValueChange = { onChange(it.trim()) })
+        }
+        Text(stringResource(R.string.github_mirror_desc), modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.bodySmall)
     }
 }

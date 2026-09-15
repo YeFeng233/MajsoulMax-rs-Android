@@ -87,7 +87,7 @@ jobs:
             rust/majsoul-jni/target
           key: >-
             cargo-${{ runner.os }}-${{ steps.upstream.outputs.rev }}-${{
-            hashFiles('rust/majsoul-jni/Cargo.toml') }}
+            hashFiles('rust/majsoul-jni/Cargo.toml', 'patches/*.patch') }}
           restore-keys: cargo-${{ runner.os }}-
 
       - name: Install cargo-ndk

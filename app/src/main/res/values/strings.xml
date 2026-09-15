@@ -187,4 +187,21 @@
     <string name="disclaimer_accept">我已阅读并同意</string>
     <string name="about_upstream">上游项目</string>
     <string name="about_license">许可证：GPL-3.0</string>
+    <string name="nav_about">关于</string>
+    <string name="game_client">雀魂本体</string>
+    <string name="game_launch">启动雀魂</string>
+    <string name="game_launch_desc">启动游戏本体；未安装时前往官网下载</string>
+    <string name="game_not_installed">未安装雀魂本体，请先前往官网下载。</string>
+    <string name="game_launch_failed">无法打开游戏或浏览器，请确认设备已安装浏览器。</string>
+    <string name="about_version">版本</string>
+    <string name="about_package">应用包名</string>
+    <string name="about_game_only">VPN 仅代理 com.soulgamechst.majsoul，其他应用不经过此 VPN。</string>
+    <string name="about_links">项目与官网</string>
+    <string name="about_repository">Android 项目仓库</string>
+    <string name="about_game_site">雀魂官网下载</string>
+    <string name="github_acceleration">GitHub 下载加速</string>
+    <string name="github_direct">直连 GitHub</string>
+    <string name="github_custom">自定义镜像</string>
+    <string name="github_mirror_url">HTTPS 镜像前缀</string>
+    <string name="github_mirror_desc">用于 GitHub 协议资源下载；更新查询仍直连 GitHub API。镜像不会收到 GitHub Token，失败时回退直连。</string>
 </resources>

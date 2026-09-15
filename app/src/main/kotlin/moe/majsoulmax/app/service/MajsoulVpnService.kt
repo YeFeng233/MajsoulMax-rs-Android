@@ -220,7 +220,7 @@ class MajsoulVpnService : VpnService() {
             builder.addRoute("::", 0)
         }
 
-        applyAppRouting(builder, settings)
+        applyAppRouting(builder)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             builder.setMetered(false)
@@ -238,52 +238,12 @@ class MajsoulVpnService : VpnService() {
         return builder.establish()
     }
 
-    /**
-     * Excluding our own package is what keeps the proxy from talking to itself;
-     * it is applied in every mode except [TunnelSettings.RoutingMode.ALLOW],
-     * where simply not listing ourselves has the same effect.
-     */
-    private fun applyAppRouting(builder: Builder, settings: TunnelSettings) {
-        val selected = settings.selectedApps - packageName
-
-        when (settings.routingMode) {
-            TunnelSettings.RoutingMode.ALLOW -> {
-                if (selected.isEmpty()) {
-                    log("per-app routing is set to allow-list but nothing is selected; routing every app instead")
-                    excludeSelf(builder)
-                    return
-                }
-                selected.forEach { pkg ->
-                    try {
-                        builder.addAllowedApplication(pkg)
-                    } catch (_: PackageManager.NameNotFoundException) {
-                        log("skipping uninstalled package $pkg")
-                    }
-                }
-            }
-
-            TunnelSettings.RoutingMode.DENY -> {
-                excludeSelf(builder)
-                selected.forEach { pkg ->
-                    try {
-                        builder.addDisallowedApplication(pkg)
-                    } catch (_: PackageManager.NameNotFoundException) {
-                        log("skipping uninstalled package $pkg")
-                    }
-                }
-            }
-
-            TunnelSettings.RoutingMode.ALL -> excludeSelf(builder)
-        }
-    }
-
-    private fun excludeSelf(builder: Builder) {
+    /** Fail closed: old settings and missing packages must never route other apps. */
+    private fun applyAppRouting(builder: Builder) {
         try {
-            builder.addDisallowedApplication(packageName)
+            builder.addAllowedApplication(moe.majsoulmax.app.core.GameLauncher.PACKAGE_NAME)
         } catch (e: PackageManager.NameNotFoundException) {
-            // Cannot happen for our own package, but a broken build would loop
-            // traffic back into the proxy, so it is worth shouting about.
-            Log.e(TAG, "cannot exclude self from the VPN", e)
+            error(getString(R.string.game_not_installed))
         }
     }
 

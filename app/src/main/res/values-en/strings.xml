@@ -175,4 +175,21 @@
     <string name="disclaimer_accept">I have read and agree</string>
     <string name="about_upstream">Upstream project</string>
     <string name="about_license">License: GPL-3.0</string>
+    <string name="nav_about">About</string>
+    <string name="game_client">Mahjong Soul app</string>
+    <string name="game_launch">Launch Mahjong Soul</string>
+    <string name="game_launch_desc">Open the game, or its official download page if not installed</string>
+    <string name="game_not_installed">Install Mahjong Soul from its official website first.</string>
+    <string name="game_launch_failed">Cannot open the game or browser.</string>
+    <string name="about_version">Version</string>
+    <string name="about_package">Package</string>
+    <string name="about_game_only">Only com.soulgamechst.majsoul is routed through this VPN.</string>
+    <string name="about_links">Project links</string>
+    <string name="about_repository">Android repository</string>
+    <string name="about_game_site">Official game download</string>
+    <string name="github_acceleration">GitHub download acceleration</string>
+    <string name="github_direct">Direct GitHub</string>
+    <string name="github_custom">Custom mirror</string>
+    <string name="github_mirror_url">HTTPS mirror prefix</string>
+    <string name="github_mirror_desc">Accelerates GitHub protocol downloads. Release checks use GitHub API directly. Tokens are never sent to mirrors; failed downloads fall back to GitHub.</string>
 </resources>

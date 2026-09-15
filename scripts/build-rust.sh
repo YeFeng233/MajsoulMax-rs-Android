@@ -22,6 +22,14 @@ info() { printf '\033[36m==>\033[0m %s\n' "$*"; }
 [[ -f "$UPSTREAM_DIR/Cargo.toml" ]] || die \
   "MajsoulMax-rs submodule is missing. Run: git submodule update --init --recursive"
 
+# Apply the Android integration patch without changing the pinned upstream commit.
+PATCH="$ROOT/patches/github-download-mirror.patch"
+if git -C "$UPSTREAM_DIR" apply --check "$PATCH" 2>/dev/null; then
+  git -C "$UPSTREAM_DIR" apply "$PATCH"
+elif ! git -C "$UPSTREAM_DIR" apply --reverse --check "$PATCH" 2>/dev/null; then
+  die "upstream mirror patch does not match the checkout"
+fi
+
 command -v cargo >/dev/null || die "cargo not found — install Rust 1.85 or newer"
 command -v protoc >/dev/null || die "protoc not found — upstream's build.rs needs it"
 

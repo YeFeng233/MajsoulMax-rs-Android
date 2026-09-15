@@ -1,0 +1,92 @@
+--- a/src/settings.rs
++++ b/src/settings.rs
+@@ -25,6 +25,8 @@
+     auto_update: bool,
+     liqi_version: String,
+     github_token: String,
++    #[serde(default)]
++    github_mirror: String,
+     #[serde(default)]
+     req_proxy: Option<url::Url>,
+     #[serde(skip)]
+@@ -182,36 +184,56 @@
+         let url = asset_item["browser_download_url"]
+             .as_str()
+             .context("No download url found in asset")?;
+-        let resp = if self.github_token.is_empty() {
+-            let client = self.create_github_client()?;
+-            client
+-                .get(url)
+-                .timeout(std::time::Duration::from_secs(10))
+-                .send()
+-                .await
+-                .context("Failed to download asset")?
++        let bytes = if self.github_mirror.trim().is_empty() {
++            self.fetch_asset(url, name, false).await?
+         } else {
+-            let client = self.create_github_client()?;
+-            client
+-                .get(url)
+-                .header("Authorization", format!("Bearer {}", self.github_token))
+-                .header("X-GitHub-Api-Version", "2022-11-28")
+-                .timeout(std::time::Duration::from_secs(10))
+-                .send()
+-                .await
+-                .context("Failed to download asset")?
+-        };
+-
+-        let resp = resp
+-            .error_for_status()
+-            .context("Failed to download asset")?;
+-
+-        let bytes = resp.bytes().await?;
++            match self.fetch_asset(url, name, true).await {
++                Ok(bytes) => bytes,
++                Err(_) => {
++                    tracing::warn!("GitHub 镜像下载失败，回退直连: {name}");
++                    self.fetch_asset(url, name, false).await?
++                }
++            }
++        };
+         let file_dir = self.dir.join(name);
+         std::fs::write(file_dir, bytes)?;
+         info!("下载完成: {name}");
+         Ok(())
+     }
++
++    async fn fetch_asset(&self, original: &str, name: &str, mirror: bool) -> Result<Bytes> {
++        let source = url::Url::parse(original)?;
++        anyhow::ensure!(source.scheme() == "https" && source.host_str() == Some("github.com"),
++            "Unexpected GitHub asset URL");
++        let target = if mirror {
++            let prefix = url::Url::parse(self.github_mirror.trim())?;
++            anyhow::ensure!(prefix.scheme() == "https" && prefix.host_str().is_some()
++                && prefix.username().is_empty() && prefix.password().is_none()
++                && prefix.query().is_none() && prefix.fragment().is_none(),
++                "Mirror must be an HTTPS URL prefix without credentials, query or fragment");
++            format!("{}/{}", prefix.as_str().trim_end_matches('/'), original)
++        } else {
++            original.to_owned()
++        };
++        let client = self.create_github_client()?;
++        let mut request = client.get(target).timeout(std::time::Duration::from_secs(15));
++        // A token belongs only to GitHub, never to a third-party mirror.
++        if !mirror && !self.github_token.is_empty() {
++            request = request.header("Authorization", format!("Bearer {}", self.github_token))
++                .header("X-GitHub-Api-Version", "2022-11-28");
++        }
++        let bytes = request.send().await?.error_for_status()?.bytes().await?;
++        // Reject HTML error pages served with status 200 before replacing data.
++        if name == "liqi.json" {
++            let json: Value = serde_json::from_slice(&bytes)?;
++            anyhow::ensure!(json.get("nested").is_some(), "Invalid liqi JSON");
++        } else {
++            let descriptor = FileDescriptorSet::decode(bytes.as_ref())?;
++            anyhow::ensure!(!descriptor.file.is_empty(), "Empty protocol descriptor");
++        }
++        Ok(bytes)
++    }
++
+ }
+ 
+ async fn get_version() -> Result<String> {

@@ -1,15 +1,12 @@
 package moe.majsoulmax.app.ui.home
 
 import android.app.Activity
-import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -58,7 +55,7 @@ import moe.majsoulmax.app.data.TunnelStatus
 import moe.majsoulmax.app.service.TunnelController
 import moe.majsoulmax.app.ui.InfoRow
 import moe.majsoulmax.app.ui.SectionCard
-import moe.majsoulmax.app.ui.web.GameActivity
+import moe.majsoulmax.app.core.GameLauncher
 import java.util.concurrent.TimeUnit
 
 @Composable
@@ -91,6 +88,10 @@ fun HomeScreen(
 
     fun toggle(on: Boolean) {
         if (on) {
+            if (!GameLauncher.isInstalled(context)) {
+                GameLauncher.open(context)
+                return
+            }
             val consent = TunnelController.prepare(context)
             if (consent != null) vpnConsent.launch(consent) else TunnelController.start(context)
         } else {
@@ -106,6 +107,17 @@ fun HomeScreen(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         PowerCard(status = status, enabled = status.stage.isOn || !checks.blocking, onToggle = ::toggle)
+
+        if (status.stage == TunnelStatus.Stage.RUNNING || !GameLauncher.isInstalled(context)) {
+            SectionCard(title = stringResource(R.string.game_client)) {
+                ActionRow(
+                    icon = Icons.Default.OpenInBrowser,
+                    title = stringResource(R.string.game_launch),
+                    subtitle = stringResource(R.string.game_launch_desc),
+                    onClick = { GameLauncher.open(context) },
+                )
+            }
+        }
 
         if (status.stage == TunnelStatus.Stage.ERROR && status.message.isNotBlank()) {
             ErrorCard(message = status.message, onOpenLogs = onOpenLogs)
@@ -168,12 +180,6 @@ fun HomeScreen(
 
         SectionCard(title = stringResource(R.string.home_quick_actions)) {
             ActionRow(
-                icon = Icons.Default.OpenInBrowser,
-                title = stringResource(R.string.action_open_game),
-                subtitle = stringResource(R.string.action_open_game_desc),
-                onClick = { context.startActivity(Intent(context, GameActivity::class.java)) },
-            )
-            ActionRow(
                 icon = Icons.Default.VerifiedUser,
                 title = stringResource(R.string.action_install_cert),
                 subtitle = stringResource(R.string.action_install_cert_desc),
@@ -221,28 +227,6 @@ fun HomeScreen(
             )
         }
 
-        Column(modifier = Modifier.padding(start = 4.dp)) {
-            Text(
-                text = stringResource(R.string.about_license),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            TextButton(
-                onClick = {
-                    runCatching {
-                        context.startActivity(
-                            Intent(Intent.ACTION_VIEW, Uri.parse(UPSTREAM_URL)),
-                        )
-                    }
-                },
-                contentPadding = PaddingValues(0.dp),
-            ) {
-                Text(
-                    stringResource(R.string.about_upstream),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-        }
         Spacer(Modifier.height(8.dp))
     }
 }
@@ -406,7 +390,6 @@ private fun ActionRow(
 
 private val OkGreen = Color(0xFF2E7D32)
 
-private const val UPSTREAM_URL = "https://github.com/Xerxes-2/MajsoulMax-rs"
 
 private fun formatUptime(status: TunnelStatus, now: Long): String {
     if (status.stage != TunnelStatus.Stage.RUNNING || status.startedAt <= 0) return "—"

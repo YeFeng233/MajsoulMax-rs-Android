@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Tune
@@ -35,7 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import moe.majsoulmax.app.R
 import moe.majsoulmax.app.data.TunnelSettingsStore
-import moe.majsoulmax.app.ui.apps.AppsScreen
+import moe.majsoulmax.app.ui.about.AboutScreen
 import moe.majsoulmax.app.ui.cert.CertScreen
 import moe.majsoulmax.app.ui.config.ConfigScreen
 import moe.majsoulmax.app.ui.home.HomeScreen
@@ -46,7 +46,7 @@ enum class Destination(val route: String, val labelRes: Int, val icon: ImageVect
     CERT("cert", R.string.nav_cert, Icons.Default.VerifiedUser),
     CONFIG("config", R.string.nav_config, Icons.Default.Tune),
     LOGS("logs", R.string.nav_logs, Icons.Default.Description),
-    APPS("apps", R.string.nav_apps, Icons.Default.Apps),
+    ABOUT("about", R.string.nav_about, Icons.Default.Info),
 }
 
 @Composable
@@ -97,7 +97,7 @@ fun AppRoot() {
             composable(Destination.CERT.route) { CertScreen() }
             composable(Destination.CONFIG.route) { ConfigScreen() }
             composable(Destination.LOGS.route) { LogsScreen() }
-            composable(Destination.APPS.route) { AppsScreen() }
+            composable(Destination.ABOUT.route) { AboutScreen() }
         }
     }
 }
