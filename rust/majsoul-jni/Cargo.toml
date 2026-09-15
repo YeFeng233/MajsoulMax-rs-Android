@@ -17,6 +17,8 @@ crate-type = ["cdylib"]
 [dependencies]
 majsoul_max_rs = { path = "../../external/MajsoulMax-rs" }
 
+# Upstream uses serde derives but does not enable the derive feature itself.
+serde = { version = "1", features = ["derive", "std"] }
 anyhow = "1"
 jni = "0.21"
 tokio = { version = "1", features = [
