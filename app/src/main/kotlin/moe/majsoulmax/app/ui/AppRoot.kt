@@ -29,7 +29,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
-import androidx.navigation.AnimatedContentTransitionScope
+import androidx.navigation.compose.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
