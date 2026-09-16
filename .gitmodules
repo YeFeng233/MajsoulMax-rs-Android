@@ -5,4 +5,4 @@
 [submodule "external/hev-socks5-tunnel"]
 	path = external/hev-socks5-tunnel
 	url = https://github.com/heiher/hev-socks5-tunnel.git
-	branch = master
+	branch = main
