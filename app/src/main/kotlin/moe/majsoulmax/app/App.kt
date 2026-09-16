@@ -1,6 +1,7 @@
 package moe.majsoulmax.app
 
 import android.app.Application
+import moe.majsoulmax.app.core.AppLog
 import moe.majsoulmax.app.core.AssetInstaller
 import moe.majsoulmax.app.core.Paths
 import moe.majsoulmax.app.service.NotificationHelper
