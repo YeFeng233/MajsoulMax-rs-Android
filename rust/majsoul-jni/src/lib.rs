@@ -34,7 +34,7 @@ use jni::{
     sys::{jboolean, jint, jstring, JNI_FALSE, JNI_TRUE},
     JNIEnv,
 };
-use majsoul_max_rs::{build_and_start_proxy, ModSettings, Modder, RwLock, Settings};
+use majsoul_max_rs::{build_and_start_proxy, MaxData, ModSettings, Modder, RwLock, Settings};
 use tokio::sync::oneshot;
 use tracing::{error, info, warn};
 use tracing_subscriber::fmt::MakeWriter;
@@ -226,8 +226,9 @@ async fn prepare(dir: &Path) -> Result<(&'static Settings, Option<Modder>)> {
         }
 
         info!("Mod 已启用");
+        let max_data = MaxData::load(settings.data_dir()).context("加载 max_data.yaml 失败")?;
         Some(
-            Modder::new(RwLock::new(mod_settings))
+            Modder::new(RwLock::new(mod_settings), max_data)
                 .await
                 .context("初始化 Modder 失败")?,
         )
