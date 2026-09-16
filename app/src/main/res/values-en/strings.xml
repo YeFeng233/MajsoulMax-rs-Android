@@ -77,6 +77,8 @@
     <string name="config_tab_mod">Mod</string>
     <string name="config_tab_proxy">Proxy</string>
     <string name="config_tab_raw">Raw JSON</string>
+    <string name="config_tab_advanced">Advanced</string>
+    <string name="config_advanced_warning">Advanced settings: if you do not know what you are doing, do not change anything here.</string>
     <string name="config_save">Save</string>
     <string name="config_saved">Saved</string>
     <string name="config_reset">Reset to defaults</string>
@@ -105,7 +107,7 @@
     <string name="cfg_send_action">Forwarded actions</string>
 
     <string name="cfg_main_char">Main character ID</string>
-    <string name="cfg_nickname">Nickname override</string>
+    <string name="cfg_nickname">Custom nickname</string>
     <string name="cfg_nickname_desc">Empty means unchanged</string>
     <string name="cfg_title">Title ID</string>
     <string name="cfg_hint_switch">Force hints on</string>
@@ -149,6 +151,8 @@
     <string name="logs_wrap">Wrap lines</string>
     <string name="logs_source_app">App runtime log</string>
     <string name="logs_source_core">Program log</string>
+    <string name="logs_formatted">Formatted</string>
+    <string name="logs_raw">Raw log</string>
 
     <string name="apps_intro">By default every app goes through the VPN except this one, which keeps the proxy from looping back on itself. You can narrow that to a chosen set instead.</string>
     <string name="apps_mode_all">All apps</string>

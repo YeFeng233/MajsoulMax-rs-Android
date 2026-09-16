@@ -58,12 +58,15 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel()) {
     var autoScroll by remember { mutableStateOf(true) }
     var wrap by remember { mutableStateOf(false) }
     var filter by remember { mutableStateOf<String?>(null) }
+    var formatted by remember { mutableStateOf(true) }
     LaunchedEffect(source) { filter = null }
     val visible = remember(lines, filter) { filter?.let { needle -> lines.filter { it.contains(needle, true) } } ?: lines }
     LaunchedEffect(visible.size, autoScroll) { if (autoScroll && visible.isNotEmpty()) state.animateScrollToItem(visible.lastIndex) }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             LogSource.entries.forEach { item -> FilterChip(source == item, { viewModel.select(item) }, label = { Text(stringResource(item.label)) }) }
+            FilterChip(formatted, { formatted = true }, label = { Text(stringResource(R.string.logs_formatted)) })
+            FilterChip(!formatted, { formatted = false }, label = { Text(stringResource(R.string.logs_raw)) })
         }
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             FilterChip(filter == null, { filter = null }, label = { Text(stringResource(R.string.logs_filter_all)) })
@@ -79,8 +82,13 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel()) {
             IconButton(viewModel::clear) { Icon(Icons.Default.Delete, stringResource(R.string.logs_clear)) }
         }
         if (visible.isEmpty()) { Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { Text(stringResource(R.string.logs_empty), color = MaterialTheme.colorScheme.onSurfaceVariant) } }
-        else LazyColumn(state = state, modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp)) { items(visible) { line -> Text(line, style = MonoStyle, color = colorFor(line), maxLines = if (wrap) Int.MAX_VALUE else 1, overflow = if (wrap) TextOverflow.Clip else TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth()) } }
+        else LazyColumn(state = state, modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp)) { items(visible) { line -> Text(if (formatted) formatLogLine(line) else line, style = MonoStyle, color = colorFor(line), maxLines = if (wrap) Int.MAX_VALUE else 1, overflow = if (wrap) TextOverflow.Clip else TextOverflow.Ellipsis, modifier = Modifier.fillMaxWidth()) } }
     }
+}
+
+private fun formatLogLine(line: String): String {
+    val marker = line.indexOf(" I/").takeIf { it >= 0 } ?: line.indexOf(" W/").takeIf { it >= 0 } ?: line.indexOf(" E/").takeIf { it >= 0 }
+    return if (marker != null) "${line.substring(0, marker)}  ${line.substring(marker + 1)}" else line
 }
 
 @Composable private fun colorFor(line: String) = when { line.contains("ERROR") || line.contains(" E/") -> MaterialTheme.colorScheme.error; line.contains("WARN") || line.contains(" W/") -> MaterialTheme.colorScheme.tertiary; else -> MaterialTheme.colorScheme.onSurface }

@@ -1,5 +1,12 @@
 package moe.majsoulmax.app.ui.config
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -83,7 +90,7 @@ private enum class ConfigTab(val labelRes: Int) {
     GENERAL(R.string.config_tab_general),
     MOD(R.string.config_tab_mod),
     PROXY(R.string.config_tab_proxy),
-    RAW(R.string.config_tab_raw),
+    ADVANCED(R.string.config_tab_advanced),
 }
 
 /**
@@ -100,7 +107,8 @@ fun ConfigScreen(viewModel: ConfigViewModel = viewModel()) {
     val message by viewModel.messages.collectAsStateWithLifecycle()
     val status by viewModel.status.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
-    var tab by remember { mutableIntStateOf(0) }
+    var tab by rememberSaveable { mutableIntStateOf(0) }
+    val tabStates = rememberSaveableStateHolder()
 
     LaunchedEffect(message) {
         message?.let {
@@ -134,12 +142,23 @@ fun ConfigScreen(viewModel: ConfigViewModel = viewModel()) {
             )
         }
 
-        Box(modifier = Modifier.weight(1f)) {
-            when (ConfigTab.entries[tab]) {
-                ConfigTab.GENERAL -> GeneralTab(viewModel, state)
-                ConfigTab.MOD -> ModTab(viewModel, state)
-                ConfigTab.PROXY -> ProxyTab(viewModel, tunnel)
-                ConfigTab.RAW -> RawTab(viewModel)
+        AnimatedContent(
+            targetState = tab,
+            modifier = Modifier.weight(1f),
+            transitionSpec = {
+                val direction = if (targetState > initialState) 1 else -1
+                slideInHorizontally(tween(250)) { it * direction } togetherWith
+                    slideOutHorizontally(tween(250)) { -it * direction }
+            },
+            label = "ConfigTabs",
+        ) { page ->
+            tabStates.SaveableStateProvider(page) {
+                when (ConfigTab.entries[page]) {
+                    ConfigTab.GENERAL -> GeneralTab(viewModel, state)
+                    ConfigTab.MOD -> ModTab(viewModel, state)
+                    ConfigTab.PROXY -> ProxyTab(viewModel, tunnel)
+                    ConfigTab.ADVANCED -> AdvancedTab(viewModel, state)
+                }
             }
         }
 
@@ -182,7 +201,7 @@ private fun RestartBanner(dirty: Boolean, onRestart: () -> Unit) {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun GeneralTab(viewModel: ConfigViewModel, state: ConfigViewModel.State) {
+private fun GeneralTab(viewModel: ConfigViewModel, state: ConfigViewModel.State, advanced: Boolean = false) {
     val which = ConfigRepository.Which.GENERAL
     val config = state.effectiveGeneral
 
@@ -233,35 +252,6 @@ private fun GeneralTab(viewModel: ConfigViewModel, state: ConfigViewModel.State)
             value = config.string("githubMirror"),
             onChange = { viewModel.edit(which, "githubMirror", jsonOf(it)) },
         )
-
-        SectionCard(title = stringResource(R.string.cfg_github_token)) {
-            TextFieldRow(
-                label = stringResource(R.string.cfg_github_token),
-                value = config.string("githubToken"),
-                onValueChange = { viewModel.edit(which, "githubToken", jsonOf(it.trim())) },
-                subtitle = stringResource(R.string.cfg_github_token_desc),
-            )
-            TextFieldRow(
-                label = stringResource(R.string.cfg_req_proxy),
-                value = config.nullableString("reqProxy"),
-                onValueChange = { viewModel.edit(which, "reqProxy", jsonOfNullableString(it)) },
-                subtitle = stringResource(R.string.cfg_req_proxy_desc),
-            )
-        }
-
-        SectionCard(title = stringResource(R.string.cfg_send_method)) {
-            ListEditor(
-                title = stringResource(R.string.cfg_send_method),
-                values = config.stringList("sendMethod"),
-                onChange = { viewModel.edit(which, "sendMethod", jsonOfStrings(it)) },
-            )
-            RowDivider()
-            ListEditor(
-                title = stringResource(R.string.cfg_send_action),
-                values = config.stringList("sendAction"),
-                onChange = { viewModel.edit(which, "sendAction", jsonOfStrings(it)) },
-            )
-        }
     }
 }
 
@@ -313,12 +303,7 @@ private fun ModTab(viewModel: ConfigViewModel, state: ConfigViewModel.State) {
             )
         }
 
-        SectionCard(title = stringResource(R.string.cfg_main_char)) {
-            NumberFieldRow(
-                label = stringResource(R.string.cfg_main_char),
-                value = config.int("mainChar", 200001),
-                onValueChange = { viewModel.edit(which, "mainChar", jsonOf(it)) },
-            )
+        SectionCard(title = stringResource(R.string.config_tab_mod)) {
             TextFieldRow(
                 label = stringResource(R.string.cfg_nickname),
                 value = config.string("nickname"),
@@ -339,15 +324,6 @@ private fun ModTab(viewModel: ConfigViewModel, state: ConfigViewModel.State) {
             InfoRow(
                 label = stringResource(R.string.cfg_mod_version),
                 value = config.string("version", "—"),
-            )
-        }
-
-        SectionCard(title = stringResource(R.string.cfg_char_skin)) {
-            IntMapEditor(
-                title = stringResource(R.string.cfg_char_skin),
-                subtitle = stringResource(R.string.cfg_char_skin_desc),
-                values = config.intMap("charSkin"),
-                onChange = { viewModel.edit(which, "charSkin", jsonOfIntMap(it)) },
             )
         }
 
@@ -486,12 +462,35 @@ private fun LogLevelPicker(selected: String, onSelect: (String) -> Unit) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Raw JSON
-// ---------------------------------------------------------------------------
-
 @Composable
-private fun RawTab(viewModel: ConfigViewModel) {
+private fun AdvancedTab(viewModel: ConfigViewModel, state: ConfigViewModel.State) {
+    val which = ConfigRepository.Which.GENERAL
+    val config = state.effectiveGeneral
+    EditorScaffold(
+        dirty = state.isDirty(which) || state.isDirty(ConfigRepository.Which.MOD),
+        onSave = { saved, error ->
+            viewModel.save(which, saved, error)
+            viewModel.save(ConfigRepository.Which.MOD, saved, error)
+        },
+        onDiscard = { viewModel.discard(which); viewModel.discard(ConfigRepository.Which.MOD) },
+        onReset = { saved -> viewModel.resetToDefaults(which, saved) },
+    ) {
+        SectionCard(title = stringResource(R.string.config_tab_advanced)) {
+            Text(stringResource(R.string.config_advanced_warning), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            TextFieldRow(label = stringResource(R.string.cfg_github_token), value = config.string("githubToken"), onValueChange = { viewModel.edit(which, "githubToken", jsonOf(it.trim())) })
+            ListEditor(title = stringResource(R.string.cfg_send_method), values = config.stringList("sendMethod"), onChange = { viewModel.edit(which, "sendMethod", jsonOfStrings(it)) })
+            ListEditor(title = stringResource(R.string.cfg_send_action), values = config.stringList("sendAction"), onChange = { viewModel.edit(which, "sendAction", jsonOfStrings(it)) })
+        }
+        val mod = state.effectiveMod
+        SectionCard(title = stringResource(R.string.config_tab_mod)) {
+            NumberFieldRow(label = stringResource(R.string.cfg_main_char), value = mod.int("mainChar", 200001), onValueChange = { viewModel.edit(ConfigRepository.Which.MOD, "mainChar", jsonOf(it)) })
+            IntMapEditor(title = stringResource(R.string.cfg_char_skin), subtitle = stringResource(R.string.cfg_char_skin_desc), values = mod.intMap("charSkin"), onChange = { viewModel.edit(ConfigRepository.Which.MOD, "charSkin", jsonOfIntMap(it)) })
+        }
+        RawTab(viewModel)
+    }
+}
+
+(viewModel: ConfigViewModel) {
     var which by remember { mutableStateOf(ConfigRepository.Which.GENERAL) }
     var text by remember { mutableStateOf("") }
     var loadedFor by remember { mutableStateOf<ConfigRepository.Which?>(null) }

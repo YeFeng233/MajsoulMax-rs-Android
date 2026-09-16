@@ -83,6 +83,8 @@
     <string name="config_tab_mod">Mod</string>
     <string name="config_tab_proxy">代理</string>
     <string name="config_tab_raw">原始 JSON</string>
+    <string name="config_tab_advanced">高级设置</string>
+    <string name="config_advanced_warning">高级设置：如果你不知道自己在操作什么，请不要修改此页面的内容。</string>
     <string name="config_save">保存</string>
     <string name="config_saved">已保存</string>
     <string name="config_reset">恢复默认</string>
@@ -111,7 +113,7 @@
     <string name="cfg_send_action">转发的 action</string>
 
     <string name="cfg_main_char">主角色 ID</string>
-    <string name="cfg_nickname">昵称覆盖</string>
+    <string name="cfg_nickname">自定义昵称</string>
     <string name="cfg_nickname_desc">留空则不修改</string>
     <string name="cfg_title">称号 ID</string>
     <string name="cfg_hint_switch">强制显示提示</string>
@@ -157,6 +159,8 @@
     <string name="logs_wrap">自动换行</string>
     <string name="logs_source_app">软件运行日志</string>
     <string name="logs_source_core">程序日志</string>
+    <string name="logs_formatted">格式化</string>
+    <string name="logs_raw">原始日志</string>
 
     <!-- Per-app routing -->
     <string name="apps_intro">默认所有应用都走 VPN（本应用自身除外，用于避免回环）。也可以只让选中的应用走 VPN。</string>
