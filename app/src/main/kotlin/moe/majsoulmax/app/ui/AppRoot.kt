@@ -1,5 +1,8 @@
 package moe.majsoulmax.app.ui
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -86,6 +89,13 @@ fun AppRoot() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
+            // Slides rather than the default fade. The offsets come from
+            // compose.animation directly, so no navigation-package internals are
+            // referenced and the code cannot drift with the navigation version.
+            enterTransition = { slideInHorizontally(tween(250)) { it } },
+            exitTransition = { slideOutHorizontally(tween(250)) { -it / 3 } },
+            popEnterTransition = { slideInHorizontally(tween(250)) { -it / 3 } },
+            popExitTransition = { slideOutHorizontally(tween(250)) { it } },
         ) {
             composable(Destination.HOME.route) {
                 HomeScreen(

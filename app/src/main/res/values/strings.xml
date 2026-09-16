@@ -25,7 +25,7 @@
     <string name="home_runtime">运行信息</string>
 
     <string name="check_assets">配置文件已就绪</string>
-    <string name="check_assets_desc">liqi_config 已解包到应用私有目录</string>
+    <string name="check_assets_desc">liqi_config 未解包或解包失败</string>
     <string name="check_cert">根证书已受信任</string>
     <string name="check_cert_desc">未安装 hudsucker 证书，HTTPS 将无法解密</string>
     <string name="check_kernel">Meta 内核已内置</string>

@@ -21,7 +21,7 @@
     <string name="home_runtime">Runtime</string>
 
     <string name="check_assets">Config bundle ready</string>
-    <string name="check_assets_desc">liqi_config has not been unpacked yet</string>
+    <string name="check_assets_desc">liqi_config is missing or failed to unpack</string>
     <string name="check_cert">Root certificate trusted</string>
     <string name="check_cert_desc">hudsucker CA is not installed — HTTPS cannot be decrypted</string>
     <string name="check_kernel">Meta kernel bundled</string>
