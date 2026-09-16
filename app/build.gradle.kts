@@ -183,8 +183,8 @@ val stageUpstreamAssets by tasks.registering(Copy::class) {
 
     from(upstreamDir.resolve("liqi_config")) {
         into("liqi_config")
-        // lqc.lqbin and liqi.json are large; both are required at runtime.
-        include("settings.json", "settings.mod.json", "liqi.json", "lqc.lqbin", "liqi.desc")
+        // liqi.json and max_data.yaml are required at runtime.
+        include("settings.json", "settings.mod.json", "liqi.json", "liqi.desc", "max_data.yaml")
     }
     from(upstreamDir.resolve("src/ca")) {
         into("ca")

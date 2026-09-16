@@ -29,6 +29,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
      */
     data class Checks(
         val assetsReady: Boolean = false,
+        val assetsError: String? = null,
         val certTrusted: Boolean = false,
         val kernelBundled: Boolean = false,
         val coreBundled: Boolean = false,
@@ -72,12 +73,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
             // Unpack before checking, so a first launch shows green rather than a
             // red row the user cannot act on.
-            AssetInstaller.ensure(context)
+            val install = AssetInstaller.ensure(context)
 
             val certTrusted = CertManager.isTrusted(context)
             val result = withContext(Dispatchers.IO) {
                 Checks(
                     assetsReady = AssetInstaller.isInstalled(context),
+                    assetsError = install.error,
                     certTrusted = certTrusted,
                     kernelBundled = MihomoKernel.isBundled(context),
                     coreBundled = MitmNative.available,

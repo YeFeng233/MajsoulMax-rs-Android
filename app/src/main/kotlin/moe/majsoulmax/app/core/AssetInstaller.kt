@@ -21,7 +21,7 @@ object AssetInstaller {
     private const val TAG = "AssetInstaller"
 
     /** Refreshed on every app upgrade. */
-    private val DATA_FILES = listOf("liqi.json", "lqc.lqbin", "liqi.desc")
+    private val DATA_FILES = listOf("liqi.json", "liqi.desc", "max_data.yaml")
 
     /** Created once, then owned by the user. */
     private val USER_FILES = listOf("settings.json", "settings.mod.json")
@@ -33,7 +33,7 @@ object AssetInstaller {
     fun isInstalled(context: Context): Boolean =
         Paths.settingsJson(context).exists() &&
             Paths.liqiJson(context).exists() &&
-            Paths.lqcBin(context).exists() &&
+            File(Paths.configDir(context), "max_data.yaml").exists() &&
             Paths.certFile(context).exists()
 
     suspend fun ensure(context: Context, force: Boolean = false): Result =

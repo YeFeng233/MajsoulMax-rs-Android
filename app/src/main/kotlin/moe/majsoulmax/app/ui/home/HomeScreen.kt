@@ -150,7 +150,8 @@ fun HomeScreen(
             CheckRow(
                 ok = checks.assetsReady,
                 title = stringResource(R.string.check_assets),
-                failureText = stringResource(R.string.check_assets_desc),
+                failureText = checks.assetsError?.let { "${stringResource(R.string.check_assets_desc)}：$it" }
+                    ?: stringResource(R.string.check_assets_desc),
             )
             CheckRow(
                 ok = checks.certTrusted,
