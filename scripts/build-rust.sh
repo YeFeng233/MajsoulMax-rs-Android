@@ -27,7 +27,7 @@ PATCH="$ROOT/patches/github-download-mirror.patch"
 if git -C "$UPSTREAM_DIR" apply --check "$PATCH" 2>/dev/null; then
   git -C "$UPSTREAM_DIR" apply "$PATCH"
 elif ! git -C "$UPSTREAM_DIR" apply --reverse --check "$PATCH" 2>/dev/null; then
-  die "upstream mirror patch does not match the checkout"
+  printf '\033[33mwarning:\033[0m upstream mirror patch does not match this checkout; building without it\n' >&2
 fi
 
 command -v cargo >/dev/null || die "cargo not found — install Rust 1.85 or newer"
