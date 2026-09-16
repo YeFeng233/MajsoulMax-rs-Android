@@ -191,7 +191,19 @@ jobs:
           fail_on_unmatched_files: true
           generate_release_notes: true
           body: |
-            下载下方 APK 安装，一个安装包包含 arm64-v8a 和 armeabi-v7a。
-            使用固定签名，包名 com.yefeng.majmax，可覆盖安装旧版本。
+            ## 更新内容
+
+            - 新增内置浏览器入口，可直接在应用内打开网页版雀魂。
+            - 新增软件运行日志，并与 MITM 核心、Meta 内核的程序日志分开查看。
+            - 优化日志页面，支持切换日志来源、实时查看、筛选、复制、分享和清空。
+            - 调整底部导航顺序为：首页、配置、日志、证书、关于。
+            - 同步上游 MajsoulMax-rs 0.7.0，修复新版上游的 Android JNI 兼容问题。
+            - 更新 hev-socks5-tunnel 子模块分支配置，适配其 main 分支。
+
+            ## 安装说明
+
+            下载下方 APK 安装，一个安装包同时包含 arm64-v8a 和 armeabi-v7a，无需另外选择架构。
+            使用固定签名，包名为 `com.yefeng.majmax`，可以覆盖安装旧版本。
             使用教程：https://github.com/YeFeng233/MajsoulMax-rs-Android#readme
+
             请停止其他代理后再启动本应用；若功能未生效，可尝试切换到线路一以外的游戏线路。
