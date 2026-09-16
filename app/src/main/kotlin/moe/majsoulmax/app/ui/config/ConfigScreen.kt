@@ -490,7 +490,7 @@ private fun AdvancedTab(viewModel: ConfigViewModel, state: ConfigViewModel.State
     }
 }
 
-(viewModel: ConfigViewModel) {
+private fun RawTab(viewModel: ConfigViewModel) {
     var which by remember { mutableStateOf(ConfigRepository.Which.GENERAL) }
     var text by remember { mutableStateOf("") }
     var loadedFor by remember { mutableStateOf<ConfigRepository.Which?>(null) }
