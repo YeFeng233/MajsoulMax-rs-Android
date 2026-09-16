@@ -43,9 +43,9 @@ import moe.majsoulmax.app.ui.logs.LogsScreen
 
 enum class Destination(val route: String, val labelRes: Int, val icon: ImageVector) {
     HOME("home", R.string.nav_home, Icons.Default.Home),
-    CERT("cert", R.string.nav_cert, Icons.Default.VerifiedUser),
     CONFIG("config", R.string.nav_config, Icons.Default.Tune),
     LOGS("logs", R.string.nav_logs, Icons.Default.Description),
+    CERT("cert", R.string.nav_cert, Icons.Default.VerifiedUser),
     ABOUT("about", R.string.nav_about, Icons.Default.Info),
 }
 

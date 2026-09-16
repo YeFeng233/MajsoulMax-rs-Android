@@ -147,6 +147,8 @@
     <string name="logs_copy">Copy</string>
     <string name="logs_filter_all">All</string>
     <string name="logs_wrap">Wrap lines</string>
+    <string name="logs_source_app">App runtime log</string>
+    <string name="logs_source_core">Program log</string>
 
     <string name="apps_intro">By default every app goes through the VPN except this one, which keeps the proxy from looping back on itself. You can narrow that to a chosen set instead.</string>
     <string name="apps_mode_all">All apps</string>
@@ -179,6 +181,8 @@
     <string name="game_client">Mahjong Soul app</string>
     <string name="game_launch">Launch Mahjong Soul</string>
     <string name="game_launch_desc">Open the game, or its official download page if not installed</string>
+    <string name="game_web_launch">Open web version in built-in browser</string>
+    <string name="game_web_launch_desc">Open Mahjong Soul inside this app</string>
     <string name="game_not_installed">Install Mahjong Soul from its official website first.</string>
     <string name="game_launch_failed">Cannot open the game or browser.</string>
     <string name="about_version">Version</string>

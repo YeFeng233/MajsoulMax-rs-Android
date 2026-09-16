@@ -34,6 +34,9 @@ object Paths {
     /** Shared log sink: Rust core, Meta kernel and Kotlin all append here. */
     fun logFile(context: Context): File = File(logDir(context), "core.log")
 
+    /** Runtime log of this app's own Kotlin layer; see [AppLog]. */
+    fun appLogFile(context: Context): File = File(logDir(context), "app.log")
+
     /** Cross-process tunnel state, written by `:core` and read by the UI. */
     fun statusFile(context: Context): File = File(context.filesDir, "status.json")
 

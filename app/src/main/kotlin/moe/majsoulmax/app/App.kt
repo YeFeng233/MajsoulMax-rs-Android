@@ -14,6 +14,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         Paths.ensureDirectories(this)
+        AppLog.install(this)
         NotificationHelper.ensureChannel(this)
 
         // Unpack on first launch so the config editor has files to show before

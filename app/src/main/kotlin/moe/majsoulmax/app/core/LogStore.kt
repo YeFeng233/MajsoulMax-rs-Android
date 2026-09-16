@@ -37,8 +37,10 @@ object LogStore {
         }
     }
 
-    suspend fun clear(context: Context) = withContext(Dispatchers.IO) {
-        runCatching { Paths.logFile(context).writeText("") }
+    suspend fun clear(context: Context) = clearFile(Paths.logFile(context))
+
+    suspend fun clearFile(file: File) = withContext(Dispatchers.IO) {
+        runCatching { file.writeText("") }
         Unit
     }
 
@@ -66,8 +68,9 @@ object LogStore {
      * Truncation is detected by the file shrinking, at which point the stream
      * restarts from the beginning rather than reading garbage at a stale offset.
      */
-    fun tail(context: Context): Flow<String> = flow {
-        val file = Paths.logFile(context)
+    fun tail(context: Context): Flow<String> = tail(Paths.logFile(context))
+
+    fun tail(file: File): Flow<String> = flow {
         var offset = 0L
 
         emit(if (file.exists()) tailOf(file, MAX_TAIL_BYTES).also { offset = file.length() } else "")

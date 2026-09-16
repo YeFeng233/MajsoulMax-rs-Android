@@ -1,6 +1,7 @@
 package moe.majsoulmax.app.ui.home
 
 import android.app.Activity
+import android.content.Intent
 import android.widget.Toast
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -115,6 +116,14 @@ fun HomeScreen(
                     title = stringResource(R.string.game_launch),
                     subtitle = stringResource(R.string.game_launch_desc),
                     onClick = { GameLauncher.open(context) },
+                )
+                ActionRow(
+                    icon = Icons.Default.OpenInBrowser,
+                    title = stringResource(R.string.game_web_launch),
+                    subtitle = stringResource(R.string.game_web_launch_desc),
+                    onClick = {
+                        context.startActivity(Intent(context, moe.majsoulmax.app.ui.web.GameActivity::class.java))
+                    },
                 )
             }
         }

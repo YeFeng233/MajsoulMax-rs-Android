@@ -155,6 +155,8 @@
     <string name="logs_copy">复制</string>
     <string name="logs_filter_all">全部</string>
     <string name="logs_wrap">自动换行</string>
+    <string name="logs_source_app">软件运行日志</string>
+    <string name="logs_source_core">程序日志</string>
 
     <!-- Per-app routing -->
     <string name="apps_intro">默认所有应用都走 VPN（本应用自身除外，用于避免回环）。也可以只让选中的应用走 VPN。</string>
@@ -191,6 +193,10 @@
     <string name="game_client">雀魂本体</string>
     <string name="game_launch">启动雀魂</string>
     <string name="game_launch_desc">启动游戏本体；未安装时前往官网下载</string>
+    <string name="game_web_launch">内置浏览器打开网页版</string>
+    <string name="game_web_launch_desc">在应用内打开网页版雀魂</string>
+    <string name="game_web_launch">内置浏览器打开网页版</string>
+    <string name="game_web_launch_desc">在应用内打开网页版雀魂</string>
     <string name="game_not_installed">未安装雀魂本体，请先前往官网下载。</string>
     <string name="game_launch_failed">无法打开游戏或浏览器，请确认设备已安装浏览器。</string>
     <string name="about_version">版本</string>
