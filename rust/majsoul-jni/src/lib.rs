@@ -212,19 +212,6 @@ async fn prepare(dir: &Path) -> Result<(&'static Settings, Option<Modder>)> {
     let modder = if settings.mod_on() {
         let mut mod_settings = ModSettings::new(settings).context("加载 settings.mod.json 失败")?;
 
-        if mod_settings.auto_update() {
-            info!("检查 lqc.lqbin 更新…");
-            match mod_settings.get_lqc().await {
-                Ok(true) => {
-                    info!("lqc.lqbin 已更新，重新载入 Mod 配置");
-                    mod_settings =
-                        ModSettings::new(settings).context("更新后重新加载 Mod 配置失败")?;
-                }
-                Ok(false) => {}
-                Err(e) => warn!("更新 lqc.lqbin 失败，继续使用本地版本: {e:#}"),
-            }
-        }
-
         info!("Mod 已启用");
         let max_data = MaxData::load(settings.data_dir()).context("加载 max_data.yaml 失败")?;
         Some(
