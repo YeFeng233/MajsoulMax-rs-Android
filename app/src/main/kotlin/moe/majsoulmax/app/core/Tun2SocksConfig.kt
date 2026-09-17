@@ -11,10 +11,23 @@ import moe.majsoulmax.app.data.TunnelSettings
  */
 object Tun2SocksConfig {
 
-    /** Address handed to the tun interface; also the tunnel's own gateway. */
-    const val TUN_ADDRESS = "198.18.0.1"
+    /**
+     * Address handed to the tun interface; also the tunnel's own gateway.
+     *
+     * Deliberately NOT `198.18.0.1/30`: that is the convention shared by Clash,
+     * mihomo, v2ray's tun2socks and hev-socks5-tunnel itself, and Clash's default
+     * fake-ip range overlays it. When another tool's tun already owns that
+     * subnet, the OS sources this app's own outbound sockets from the foreign
+     * interface and every upstream connection times out, which reads as "the
+     * game has no network" with nothing in the log but i/o timeouts. `172.19` is
+     * sing-box's documented example, so this sits outside both conventions while
+     * staying private — which is also what keeps it out of the VPN's own routes.
+     */
+    const val TUN_ADDRESS = "172.20.0.1"
     const val TUN_PREFIX = 30
-    const val TUN_ADDRESS_V6 = "fdfe:dcba:9876::1"
+
+    /** Likewise away from Clash's documented `fdfe:dcba:9876::1/126`. */
+    const val TUN_ADDRESS_V6 = "fd7a:6d61:6a73::1"
     const val TUN_PREFIX_V6 = 126
 
     fun build(settings: TunnelSettings): String {
