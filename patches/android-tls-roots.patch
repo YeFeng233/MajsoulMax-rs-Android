@@ -1,4 +1,4 @@
-﻿diff --git a/src/settings.rs b/src/settings.rs
+diff --git a/src/settings.rs b/src/settings.rs
 index 68e763d..bd5f89a 100644
 --- a/src/settings.rs
 +++ b/src/settings.rs
@@ -15,7 +15,7 @@ index 68e763d..bd5f89a 100644
 +        // instead, which needs no host integration.
 +        #[cfg(target_os = "android")]
 +        {
-+            builder = builder.tls_certs_only(android_trust_roots());
++            builder = builder.tls_certs_only(Self::android_trust_roots());
 +        }
          if let Some(proxy) = &self.req_proxy {
              builder = builder.proxy(reqwest::Proxy::all(proxy.clone())?);
