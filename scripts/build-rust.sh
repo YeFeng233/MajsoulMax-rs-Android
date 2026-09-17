@@ -77,13 +77,25 @@ for abi in $TARGET_ABIS; do
   rustup target add "$triple" >/dev/null 2>&1 || true
 
   info "building libmajsoulmax.so for $abi ($triple)"
-  (
+  # Capture the build so a compiler error can be republished as a GitHub
+  # annotation. The job log needs authentication to read, so without this the
+  # only evidence of a failure is "exit code 101" — which is not actionable.
+  if ! build_log=$(
     cd "$CRATE_DIR"
     export ANDROID_ABI="$abi"
     export ANDROID_PLATFORM="android-26"
     export CMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake"
-    cargo ndk -t "$abi" --platform 26 -o "$JNI_LIBS_DIR" build --profile "$PROFILE"
-  )
+    cargo ndk -t "$abi" --platform 26 -o "$JNI_LIBS_DIR" build --profile "$PROFILE" 2>&1
+  ); then
+    printf '%s\n' "$build_log" >&2
+    # A negative substring offset resolves to nothing here when it overruns the
+    # string, which would publish an empty annotation, so compute it instead.
+    len=${#build_log}
+    tail_text="${build_log:$(( len > 6000 ? len - 6000 : 0 ))}"
+    printf '::error title=cargo build failed (%s)::%s\n' "$abi" "${tail_text//$'\n'/%0A}"
+    exit 1
+  fi
+  printf '%s\n' "$build_log" | tail -n 3
 
   out="$JNI_LIBS_DIR/$abi/libmajsoulmax.so"
   [[ -f "$out" ]] || die "expected $out to exist after the build"
