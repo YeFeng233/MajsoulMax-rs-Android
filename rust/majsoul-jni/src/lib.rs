@@ -66,6 +66,60 @@ fn fail(err: &anyhow::Error) {
     set_state(STATE_ERROR);
 }
 
+static LAST_PANIC: Mutex<Option<String>> = Mutex::new(None);
+static PANIC_HOOK: Once = Once::new();
+
+/// Keeps panic details instead of letting them vanish.
+///
+/// Android gives an app process no stderr, so the default hook's message, its
+/// location and any backtrace are all discarded — which is why a failed start
+/// could only ever say "the core thread panicked".
+fn install_panic_hook() {
+    PANIC_HOOK.call_once(|| {
+        let previous = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            let payload = info.payload();
+            let detail = payload
+                .downcast_ref::<&str>()
+                .map(|text| (*text).to_owned())
+                .or_else(|| payload.downcast_ref::<String>().cloned())
+                .unwrap_or_else(|| "non-string panic payload".to_owned());
+            let location = info
+                .location()
+                .map(|at| format!("{}:{}:{}", at.file(), at.line(), at.column()))
+                .unwrap_or_else(|| "unknown location".to_owned());
+            let summary = format!("{detail} (at {location})");
+
+            logcat(&format!("panic: {summary}"));
+            error!(
+                "panic: {summary}\nbacktrace:\n{}",
+                std::backtrace::Backtrace::force_capture()
+            );
+            *LAST_PANIC.lock().unwrap_or_else(|e| e.into_inner()) = Some(summary);
+            previous(info);
+        }));
+    });
+}
+
+static CRYPTO_PROVIDER: Once = Once::new();
+
+/// rustls 0.23 refuses to guess which crypto backend a host wants, and reqwest
+/// 0.13 no longer picks one as a side effect of a feature name the way 0.12 did.
+///
+/// The first HTTPS client built in this process is the liqi update check, so
+/// without this it panicked inside `ClientConfig::builder()` and took the whole
+/// core down: the tunnel never started, and the only symptom was the generic
+/// "the core thread panicked". Selecting the provider explicitly is the fix
+/// rustls asks for; a second attempt simply finds one already installed.
+fn install_crypto_provider() {
+    CRYPTO_PROVIDER.call_once(|| {
+        let provider = hudsucker::rustls::crypto::aws_lc_rs::default_provider();
+        if provider.install_default().is_err() {
+            logcat("a rustls crypto provider was already installed; keeping it");
+        }
+    });
+}
+
 // ---------------------------------------------------------------------------
 // Logging: tee tracing output to logcat and to a file the UI process tails.
 // ---------------------------------------------------------------------------
@@ -194,13 +248,23 @@ async fn prepare(dir: &Path) -> Result<(&'static Settings, Option<Modder>)> {
 
     if settings.auto_update() {
         info!("检查 liqi 更新…");
-        match settings.update().await {
-            Ok(true) => {
+        // The refresh runs on a throwaway copy inside its own task. It is an
+        // optional convenience, so it must not be able to abort a start: a panic
+        // in the download stack used to kill the tunnel outright, and
+        // `tokio::spawn` turns that panic into a JoinError we handle like any
+        // other update failure.
+        let mut probe = settings.clone();
+        match tokio::spawn(async move { probe.update().await }).await {
+            Ok(Ok(true)) => {
                 info!("liqi 已更新，重新载入配置");
                 settings = Settings::new(dir).context("更新后重新加载 settings.json 失败")?;
             }
-            Ok(false) => {}
-            Err(e) => warn!("更新 liqi 失败，继续使用本地版本: {e:#}"),
+            Ok(Ok(false)) => {}
+            Ok(Err(e)) => warn!("更新 liqi 失败，继续使用本地版本: {e:#}"),
+            Err(e) if e.is_panic() => {
+                warn!("更新 liqi 时发生 panic，已跳过本次更新，继续使用本地版本")
+            }
+            Err(e) => warn!("更新 liqi 任务异常结束，继续使用本地版本: {e}"),
         }
     }
 
@@ -294,6 +358,11 @@ fn start(config_dir: PathBuf, log_file: PathBuf) -> Result<()> {
     }
 
     init_logging(&log_file);
+    // Both must be in place before anything else runs: the hook so a panic
+    // during startup is reported with its real cause, and the provider because
+    // the very first HTTPS client the core builds needs one.
+    install_panic_hook();
+    install_crypto_provider();
 
     if !config_dir.is_dir() {
         bail!("配置目录不存在: {}", config_dir.display());
@@ -325,7 +394,14 @@ fn start(config_dir: PathBuf, log_file: PathBuf) -> Result<()> {
                     }
                 }
                 Ok(Err(e)) => fail(&e),
-                Err(_) => fail(&anyhow!("MITM 核心线程 panic")),
+                Err(_) => {
+                    let detail = LAST_PANIC
+                        .lock()
+                        .unwrap_or_else(|e| e.into_inner())
+                        .clone()
+                        .unwrap_or_else(|| "未捕获到 panic 详情".to_owned());
+                    fail(&anyhow!("MITM 核心线程 panic: {detail}"))
+                }
             }
         })
         .context("启动 MITM 线程失败")?;

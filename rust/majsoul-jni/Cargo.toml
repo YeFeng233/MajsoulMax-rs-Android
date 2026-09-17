@@ -17,6 +17,14 @@ crate-type = ["cdylib"]
 [dependencies]
 majsoul_max_rs = { path = "../../external/MajsoulMax-rs" }
 
+# Only for its `rustls` re-export: upstream reaches rustls through hudsucker, so
+# declaring the identical dependency lands on the same crate instance and the
+# provider installed below is the one the proxy's own TLS stack will use.
+hudsucker = { version = "0.25", default-features = false, features = [
+    "rcgen-ca",
+    "rustls-client",
+] }
+
 # Upstream uses serde derives but does not enable the derive feature itself.
 serde = { version = "1", features = ["derive", "std"] }
 anyhow = "1"
