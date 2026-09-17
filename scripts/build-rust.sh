@@ -22,13 +22,22 @@ info() { printf '\033[36m==>\033[0m %s\n' "$*"; }
 [[ -f "$UPSTREAM_DIR/Cargo.toml" ]] || die \
   "MajsoulMax-rs submodule is missing. Run: git submodule update --init --recursive"
 
-# Apply the Android integration patch without changing the pinned upstream commit.
-PATCH="$ROOT/patches/github-download-mirror.patch"
-if git -C "$UPSTREAM_DIR" apply --check "$PATCH" 2>/dev/null; then
-  git -C "$UPSTREAM_DIR" apply "$PATCH"
-elif ! git -C "$UPSTREAM_DIR" apply --reverse --check "$PATCH" 2>/dev/null; then
-  printf '\033[33mwarning:\033[0m upstream mirror patch does not match this checkout; building without it\n' >&2
-fi
+# Apply the Android integration patches without changing the pinned upstream
+# commit. A patch that no longer matches the checkout is a warning rather than a
+# failed build: upstream moves, and refusing to build until every patch has been
+# rewritten would block the whole pipeline.
+for patch in "$ROOT"/patches/*.patch; do
+  [[ -f "$patch" ]] || continue
+  name="$(basename "$patch")"
+  if git -C "$UPSTREAM_DIR" apply --check "$patch" 2>/dev/null; then
+    git -C "$UPSTREAM_DIR" apply "$patch"
+    info "applied $name"
+  elif git -C "$UPSTREAM_DIR" apply --reverse --check "$patch" 2>/dev/null; then
+    info "$name already applied"
+  else
+    printf '\033[33mwarning:\033[0m %s does not match this checkout; skipping\n' "$name" >&2
+  fi
+done
 
 command -v cargo >/dev/null || die "cargo not found — install Rust 1.85 or newer"
 command -v protoc >/dev/null || die "protoc not found — upstream's build.rs needs it"

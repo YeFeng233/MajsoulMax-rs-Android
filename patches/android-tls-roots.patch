@@ -1,0 +1,62 @@
+﻿diff --git a/src/settings.rs b/src/settings.rs
+index 68e763d..bd5f89a 100644
+--- a/src/settings.rs
++++ b/src/settings.rs
+@@ -147,13 +147,57 @@ const APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PK
+ 
+ impl Settings {
+     fn create_github_client(&self) -> Result<reqwest::Client> {
++        #[allow(unused_mut)]
+         let mut builder = reqwest::Client::builder().user_agent(APP_USER_AGENT);
++        // reqwest 0.13 verifies through rustls-platform-verifier by default, and
++        // that verifier needs a JVM Context on Android which this core has no way
++        // to hand over — so building the client panicked and took every start
++        // down with it. Pinning the OS root set selects the WebPKI verifier
++        // instead, which needs no host integration.
++        #[cfg(target_os = "android")]
++        {
++            builder = builder.tls_certs_only(android_trust_roots());
++        }
+         if let Some(proxy) = &self.req_proxy {
+             builder = builder.proxy(reqwest::Proxy::all(proxy.clone())?);
+         }
+         builder.build().context("Failed to build HTTP client")
+     }
+ 
++    /// Root certificates from Android's system store: a directory of PEM files
++    /// that is world-readable even though it is owned by root.
++    #[cfg(target_os = "android")]
++    fn android_trust_roots() -> Vec<reqwest::Certificate> {
++        const DIRS: [&str; 2] = [
++            "/system/etc/security/cacerts",
++            "/apex/com.android.conscrypt/cacerts",
++        ];
++
++        let mut roots = Vec::new();
++        for dir in DIRS {
++            let Ok(entries) = std::fs::read_dir(dir) else {
++                continue;
++            };
++            for entry in entries.flatten() {
++                let Ok(pem) = std::fs::read(entry.path()) else {
++                    continue;
++                };
++                if let Ok(certs) = reqwest::Certificate::from_pem_bundle(&pem) {
++                    roots.extend(certs);
++                }
++            }
++            // The APEX path is the same store on newer releases; only fall back
++            // to it when the legacy directory yielded nothing.
++            if !roots.is_empty() {
++                break;
++            }
++        }
++        if roots.is_empty() {
++            tracing::warn!("无法从系统证书目录读取根证书，HTTPS 更新可能失败");
++        }
++        roots
++    }
++
+     pub fn new(arg_dir: &Path) -> Result<Self> {
+         let exe = std::env::current_exe().context("无法获取当前可执行文件路径")?;
+         let dir = if arg_dir.is_dir() {
