@@ -182,16 +182,3 @@ fun jsonOfInts(values: List<Int>): JsonElement = JsonArray(values.map { JsonPrim
 fun jsonOfIntMap(values: Map<Int, Int>): JsonElement = buildJsonObject {
     values.toSortedMap().forEach { (k, v) -> put(k.toString(), JsonPrimitive(v)) }
 }
-
-/** Upstream models `reqProxy` as `Option<Url>`, so empty must serialise as null. */
-fun jsonOfNullableString(value: String): JsonElement =
-    if (value.isBlank()) kotlinx.serialization.json.JsonNull else JsonPrimitive(value.trim())
-
-/** Reads a value that may be JSON null, presenting it as an empty string. */
-fun JsonObject.nullableString(key: String): String {
-    val element = this[key] ?: return ""
-    if (element is JsonPrimitive) {
-        return if (element.content == "null" && !element.isString) "" else element.content
-    }
-    return ""
-}

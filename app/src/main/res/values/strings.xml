@@ -8,7 +8,6 @@
     <string name="nav_cert">证书</string>
     <string name="nav_config">配置</string>
     <string name="nav_logs">日志</string>
-    <string name="nav_apps">分应用</string>
 
     <!-- Service state -->
     <string name="status_stopped">已停止</string>
@@ -39,8 +38,6 @@
     <string name="check_action_fix">去处理</string>
     <string name="check_recheck">重新检查</string>
 
-    <string name="action_open_game">打开雀魂</string>
-    <string name="action_open_game_desc">用内置浏览器直连线路 1</string>
     <string name="action_install_cert">安装证书</string>
     <string name="action_install_cert_desc">一键跳转系统证书安装页</string>
     <string name="action_edit_config">编辑配置</string>
@@ -82,7 +79,6 @@
     <string name="config_tab_general">基础</string>
     <string name="config_tab_mod">Mod</string>
     <string name="config_tab_proxy">代理</string>
-    <string name="config_tab_raw">原始 JSON</string>
     <string name="config_tab_advanced">高级设置</string>
     <string name="config_advanced_warning">高级设置：如果你不知道自己在操作什么，请不要修改此页面的内容。</string>
     <string name="config_save">保存</string>
@@ -105,9 +101,6 @@
     <string name="cfg_proxy_addr">MITM 监听地址</string>
     <string name="cfg_api_url">助手 API 地址</string>
     <string name="cfg_github_token">GitHub Token</string>
-    <string name="cfg_github_token_desc">留空即匿名访问，遇到限流时填入</string>
-    <string name="cfg_req_proxy">更新用上游代理</string>
-    <string name="cfg_req_proxy_desc">例如 http://127.0.0.1:7890，留空则直连</string>
     <string name="cfg_liqi_version">当前 liqi 版本</string>
     <string name="cfg_send_method">转发的 method</string>
     <string name="cfg_send_action">转发的 action</string>
@@ -161,15 +154,6 @@
     <string name="logs_source_core">程序日志</string>
     <string name="logs_formatted">格式化</string>
     <string name="logs_raw">原始日志</string>
-
-    <!-- Per-app routing -->
-    <string name="apps_intro">默认所有应用都走 VPN（本应用自身除外，用于避免回环）。也可以只让选中的应用走 VPN。</string>
-    <string name="apps_mode_all">全部应用</string>
-    <string name="apps_mode_allow">仅选中应用</string>
-    <string name="apps_mode_deny">排除选中应用</string>
-    <string name="apps_search">搜索应用</string>
-    <string name="apps_selected">已选 %1$d 个</string>
-    <string name="apps_show_system">显示系统应用</string>
 
     <!-- Notification -->
     <string name="notif_channel_name">隧道状态</string>

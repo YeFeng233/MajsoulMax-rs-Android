@@ -15,11 +15,7 @@ object Paths {
 
     fun settingsJson(context: Context): File = File(configDir(context), "settings.json")
 
-    fun modSettingsJson(context: Context): File = File(configDir(context), "settings.mod.json")
-
     fun liqiJson(context: Context): File = File(configDir(context), "liqi.json")
-
-    fun lqcBin(context: Context): File = File(configDir(context), "lqc.lqbin")
 
     /** The hudsucker root certificate the user has to trust. */
     fun certFile(context: Context): File = File(context.filesDir, "ca/hudsucker.cer")

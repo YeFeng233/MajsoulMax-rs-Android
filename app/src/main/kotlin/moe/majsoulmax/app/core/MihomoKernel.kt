@@ -127,8 +127,6 @@ object MihomoKernel {
             "${STARTUP_TIMEOUT_MS / 1000}s — see the log"
     }
 
-    suspend fun stop() = withContext(Dispatchers.IO) { stopBlocking() }
-
     fun stopBlocking() {
         val current = process ?: return
         runCatching {

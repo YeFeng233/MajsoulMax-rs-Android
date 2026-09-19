@@ -28,7 +28,6 @@ object AppLog {
     }
 
     fun i(source: String, message: String) = write("I", source, message, null)
-    fun w(source: String, message: String, error: Throwable? = null) = write("W", source, message, error)
     fun e(source: String, message: String, error: Throwable? = null) = write("E", source, message, error)
 
     private fun write(level: String, source: String, message: String, error: Throwable?) {

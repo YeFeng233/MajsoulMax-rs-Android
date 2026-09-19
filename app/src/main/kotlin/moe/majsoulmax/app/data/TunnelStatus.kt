@@ -49,13 +49,6 @@ data class TunnelStatus(
         val isOn: Boolean get() = this == STARTING || this == RUNNING
     }
 
-    val uptimeMillis: Long
-        get() = if (stage == Stage.RUNNING && startedAt > 0) {
-            (System.currentTimeMillis() - startedAt).coerceAtLeast(0)
-        } else {
-            0
-        }
-
     companion object {
         const val ACTION_STATUS_CHANGED = "moe.majsoulmax.app.action.STATUS"
 

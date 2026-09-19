@@ -6,7 +6,6 @@ import moe.majsoulmax.app.data.TunnelStatus
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
-import android.os.Build
 import android.util.Log
 
 /**
