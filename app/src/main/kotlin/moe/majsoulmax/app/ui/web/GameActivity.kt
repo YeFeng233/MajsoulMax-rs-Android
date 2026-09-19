@@ -51,7 +51,6 @@ class GameActivity : ComponentActivity() {
             settings.apply {
                 javaScriptEnabled = true
                 domStorageEnabled = true
-                databaseEnabled = true
                 mediaPlaybackRequiresUserGesture = false
                 useWideViewPort = true
                 loadWithOverviewMode = true

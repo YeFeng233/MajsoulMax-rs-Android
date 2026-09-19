@@ -19,7 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Article
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Numbers
@@ -202,7 +202,7 @@ fun HomeScreen(
                 onClick = onOpenConfig,
             )
             ActionRow(
-                icon = Icons.Default.Article,
+                icon = Icons.AutoMirrored.Filled.Article,
                 title = stringResource(R.string.action_view_logs),
                 subtitle = stringResource(R.string.action_view_logs_desc),
                 onClick = onOpenLogs,

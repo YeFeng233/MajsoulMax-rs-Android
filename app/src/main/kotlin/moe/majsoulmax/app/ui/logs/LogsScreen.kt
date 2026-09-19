@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.WrapText
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -75,7 +76,7 @@ fun LogsScreen(viewModel: LogsViewModel = viewModel()) {
         }
         Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton({ autoScroll = !autoScroll }) { Icon(Icons.Default.VerticalAlignBottom, stringResource(R.string.logs_autoscroll), tint = if (autoScroll) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
-            IconButton({ wrap = !wrap }) { Icon(Icons.Default.WrapText, stringResource(R.string.logs_wrap), tint = if (wrap) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
+            IconButton({ wrap = !wrap }) { Icon(Icons.AutoMirrored.Filled.WrapText, stringResource(R.string.logs_wrap), tint = if (wrap) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant) }
             Spacer(Modifier.weight(1f))
             IconButton({ copyLogs(context, visible) }) { Icon(Icons.Default.ContentCopy, stringResource(R.string.logs_copy)) }
             IconButton({ shareLogs(context, viewModel.currentFile()) }) { Icon(Icons.Default.Share, stringResource(R.string.logs_share)) }
