@@ -20,6 +20,14 @@ set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${HEV_LIB}")
 
 add_library(tun2socks SHARED tun2socks_jni.c)
 
+# 16 KB page sizes. The loader maps each LOAD segment at its p_align, so a 4 KB
+# aligned library cannot be loaded on a device with 16 KB pages, and NDK r27
+# still links at 4 KB by default. Same flags upstream's hev-socks5-tunnel
+# Android.mk uses, so the two libraries stay consistent.
+target_link_options(tun2socks PRIVATE
+    "-Wl,-z,max-page-size=16384"
+    "-Wl,-z,common-page-size=16384")
+
 if(EXISTS "${HEV_LIB}")
     message(STATUS "majsoulmax: linking prebuilt tunnel ${HEV_LIB}")
     add_library(hev-socks5-tunnel SHARED IMPORTED)

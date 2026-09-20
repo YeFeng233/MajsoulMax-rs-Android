@@ -130,6 +130,43 @@ jobs:
             *)       ./gradlew --no-daemon -Pmajsoulmax.buildRust=false assembleRelease ;;
           esac
 
+      # A 4 KB aligned LOAD segment cannot be mapped on a device with 16 KB
+      # pages: the APK installs and the library fails to load. Check the packed
+      # artifact rather than the build tree, so what ships is what is measured.
+      - name: Verify 16 KB page alignment
+        run: |
+          set -euo pipefail
+          READELF="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf"
+          [[ -x "$READELF" ]] || { echo "::error::llvm-readelf not found at $READELF"; exit 1; }
+
+          APK="$(find app/build/outputs/apk -name '*.apk' | head -1)"
+          [[ -n "$APK" ]] || { echo "::error::no APK to check"; exit 1; }
+          echo "checking $(basename "$APK")"
+
+          tmp="$(mktemp -d)"
+          unzip -q -o "$APK" 'lib/*' -d "$tmp"
+
+          status=0
+          while IFS= read -r so; do
+            rel="${so#"$tmp"/}"
+            bad=0
+            for align in $("$READELF" -lW "$so" | awk '/^  LOAD/{print $NF}' | sort -u); do
+              (( align < 16384 )) && bad=1
+            done
+            if (( bad == 0 )); then
+              printf '  ok      %s\n' "$rel"
+            elif [[ "$rel" == *armeabi-v7a/libmihomo.so ]]; then
+              # Upstream's prebuilt; see scripts/fetch-mihomo.sh. 32-bit libraries
+              # never load on a 16 KB-page device, so this is recorded, not failed.
+              printf '::warning::%s is not 16 KB aligned (upstream prebuilt)\n' "$rel"
+            else
+              printf '::error::%s is not 16 KB aligned\n' "$rel"
+              status=1
+            fi
+          done < <(find "$tmp/lib" -name '*.so' | sort)
+
+          exit "$status"
+
       - name: Report payload sizes
         if: always()
         run: |

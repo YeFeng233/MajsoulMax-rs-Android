@@ -82,6 +82,11 @@ for abi in $TARGET_ABIS; do
   gzip -dc "$tmp" > "$dest_dir/libmihomo.so" || die "cannot decompress $url"
   rm -f "$tmp"
   chmod 0755 "$dest_dir/libmihomo.so"
+  # Note on 16 KB page sizes: these are upstream's prebuilt binaries, so their
+  # LOAD alignment is not ours to set. arm64 arrives 16 KB aligned; the 32-bit
+  # arm build is 4 KB aligned and stays that way. It is left in place because a
+  # 16 KB-page device is 64-bit only — the arm64 library is the one that has to
+  # load there — and the workflow's alignment check records it as a warning.
 done
 
 printf '%s\n' "$TAG" > "$JNI_LIBS_DIR/.mihomo-version"

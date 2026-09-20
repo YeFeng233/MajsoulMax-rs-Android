@@ -1,0 +1,30 @@
+# 16 KB page sizes. The loader maps each LOAD segment at its p_align, so a
+# library linked at the 4 KB default cannot be loaded on a 16 KB-page device,
+# and Rust's Android targets still default to 4 KB.
+#
+# Kept here rather than in RUSTFLAGS so that a local `cargo ndk` run and
+# scripts/build-rust.sh (which shells out to the same cargo) cannot drift apart,
+# and so the flags stay scoped to the Android targets this crate is built for.
+[target.aarch64-linux-android]
+rustflags = [
+    "-C", "link-arg=-Wl,-z,max-page-size=16384",
+    "-C", "link-arg=-Wl,-z,common-page-size=16384",
+]
+
+[target.armv7-linux-androideabi]
+rustflags = [
+    "-C", "link-arg=-Wl,-z,max-page-size=16384",
+    "-C", "link-arg=-Wl,-z,common-page-size=16384",
+]
+
+[target.x86_64-linux-android]
+rustflags = [
+    "-C", "link-arg=-Wl,-z,max-page-size=16384",
+    "-C", "link-arg=-Wl,-z,common-page-size=16384",
+]
+
+[target.i686-linux-android]
+rustflags = [
+    "-C", "link-arg=-Wl,-z,max-page-size=16384",
+    "-C", "link-arg=-Wl,-z,common-page-size=16384",
+]
