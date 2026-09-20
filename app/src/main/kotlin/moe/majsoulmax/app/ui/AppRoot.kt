@@ -3,7 +3,6 @@ package moe.majsoulmax.app.ui
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -12,15 +11,12 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -44,6 +40,7 @@ import moe.majsoulmax.app.ui.cert.CertScreen
 import moe.majsoulmax.app.ui.config.ConfigScreen
 import moe.majsoulmax.app.ui.home.HomeScreen
 import moe.majsoulmax.app.ui.logs.LogsScreen
+import moe.majsoulmax.app.ui.oobe.OobeScreen
 
 enum class Destination(val route: String, val labelRes: Int, val icon: ImageVector) {
     HOME("home", R.string.nav_home, Icons.Default.Home),
@@ -55,11 +52,27 @@ enum class Destination(val route: String, val labelRes: Int, val icon: ImageVect
 
 @Composable
 fun AppRoot() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val store = remember { TunnelSettingsStore.get(context) }
+    val settings by store.settings.collectAsStateWithLifecycle()
+
+    // The first-run guide owns the whole window until it is finished, so the
+    // bottom navigation cannot be reached from a step that is still unconfirmed.
+    if (!settings.onboarded) {
+        OobeScreen(
+            onFinish = {
+                scope.launch {
+                    store.update { it.copy(onboarded = true, acceptedDisclaimer = true) }
+                }
+            },
+        )
+        return
+    }
+
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination
-
-    DisclaimerGate()
 
     Scaffold(
         bottomBar = {
@@ -132,39 +145,4 @@ fun AppRoot() {
 @Composable
 private fun ScreenSurface(content: @Composable () -> Unit) {
     Surface(modifier = Modifier.fillMaxSize()) { content() }
-}
-
-/**
- * Upstream asks that its disclaimer be shown, and a tool that can get an account
- * banned should say so before it is switched on — so this gates the UI once,
- * rather than hiding in an About page.
- */
-@Composable
-private fun DisclaimerGate() {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val store = remember { TunnelSettingsStore.get(context) }
-    val settings by store.settings.collectAsStateWithLifecycle()
-
-    if (settings.acceptedDisclaimer) return
-
-    AlertDialog(
-        onDismissRequest = { /* deliberately not dismissible */ },
-        title = { Text(stringResource(R.string.disclaimer_title)) },
-        text = {
-            Column {
-                Text(
-                    stringResource(R.string.disclaimer_body),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                scope.launch { store.update { it.copy(acceptedDisclaimer = true) } }
-            }) {
-                Text(stringResource(R.string.disclaimer_accept))
-            }
-        },
-    )
 }

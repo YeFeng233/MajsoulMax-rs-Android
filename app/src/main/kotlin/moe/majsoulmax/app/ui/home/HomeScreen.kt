@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.OpenInBrowser
@@ -41,7 +40,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -51,6 +49,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import moe.majsoulmax.app.R
 import moe.majsoulmax.app.data.TunnelStatus
 import moe.majsoulmax.app.service.TunnelController
+import moe.majsoulmax.app.ui.CheckRow
 import moe.majsoulmax.app.ui.InfoRow
 import moe.majsoulmax.app.ui.SectionCard
 import moe.majsoulmax.app.core.GameLauncher
@@ -302,43 +301,6 @@ private fun ErrorCard(message: String, onOpenLogs: () -> Unit) {
 }
 
 @Composable
-private fun CheckRow(
-    ok: Boolean,
-    title: String,
-    failureText: String,
-    actionText: String? = null,
-    onAction: (() -> Unit)? = null,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = if (ok) Icons.Default.CheckCircle else Icons.Default.ErrorOutline,
-            contentDescription = null,
-            tint = if (ok) OkGreen else MaterialTheme.colorScheme.error,
-            modifier = Modifier.size(20.dp),
-        )
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyMedium)
-            if (!ok) {
-                Text(
-                    failureText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-        if (!ok && actionText != null && onAction != null) {
-            TextButton(onClick = onAction) { Text(actionText) }
-        }
-    }
-}
-
-@Composable
 private fun ActionRow(
     icon: ImageVector,
     title: String,
@@ -372,9 +334,6 @@ private fun ActionRow(
         }
     }
 }
-
-private val OkGreen = Color(0xFF2E7D32)
-
 
 private fun formatUptime(status: TunnelStatus, now: Long): String {
     if (status.stage != TunnelStatus.Stage.RUNNING || status.startedAt <= 0) return "—"

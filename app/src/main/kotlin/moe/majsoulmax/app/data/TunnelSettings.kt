@@ -35,6 +35,8 @@ data class TunnelSettings(
     @SerialName("extraRules") val extraRules: List<String> = emptyList(),
     @SerialName("kernelLogLevel") val kernelLogLevel: String = "warning",
     @SerialName("acceptedDisclaimer") val acceptedDisclaimer: Boolean = false,
+    /** Cleared again from About to replay the first-run guide. */
+    @SerialName("onboarded") val onboarded: Boolean = false,
 ) {
     /**
      * Clamps anything a hand-edited file could get wrong.
@@ -53,6 +55,18 @@ data class TunnelSettings(
         extraRules = extraRules.map { it.trim() }.filter { it.isNotEmpty() },
         kernelLogLevel = kernelLogLevel.takeIf { it in LOG_LEVELS } ?: "warning",
     )
+
+    /**
+     * An install that accepted the disclaimer before the first-run guide existed
+     * has effectively been onboarded already, so it is not walked through it
+     * again after the update. Pure and idempotent, and applied on read only —
+     * the file keeps whatever the user last saved.
+     *
+     * Replaying the guide from About clears both flags, which is what lets this
+     * migration coexist with the replay entry.
+     */
+    fun migrated(): TunnelSettings =
+        if (acceptedDisclaimer && !onboarded) copy(onboarded = true) else this
 
     companion object {
         const val DEFAULT_MIXED_PORT = 7890
@@ -84,11 +98,12 @@ class TunnelSettingsStore private constructor(private val context: Context) {
     val settings: StateFlow<TunnelSettings> = _settings.asStateFlow()
 
     fun loadBlocking(): TunnelSettings = try {
-        if (file.exists()) {
+        val loaded = if (file.exists()) {
             JSON.decodeFromString<TunnelSettings>(file.readText()).sanitised()
         } else {
             TunnelSettings()
         }
+        loaded.migrated()
     } catch (e: Exception) {
         Log.e(TAG, "tunnel.json unreadable, falling back to defaults", e)
         TunnelSettings()

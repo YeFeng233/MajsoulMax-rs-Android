@@ -181,4 +181,25 @@
     <string name="github_mirror_url">HTTPS mirror prefix</string>
     <string name="github_mirror_desc">Accelerates GitHub protocol downloads. Release checks use GitHub API directly. Tokens are never sent to mirrors; failed downloads fall back to GitHub.</string>
     <string name="github_conversun_unavailable">Conversun Hub (Conversun repositories only)</string>
+    <string name="oobe_intro">Three quick steps before the first run; About can bring this guide back.</string>
+    <string name="oobe_step_of">Step %1$d of %2$d</string>
+    <string name="oobe_step_permissions">Permissions</string>
+    <string name="oobe_step_certificate">Certificate</string>
+    <string name="oobe_step_terms">Notice</string>
+    <string name="oobe_perm_vpn">VPN permission</string>
+    <string name="oobe_perm_vpn_desc">Without it the local tun cannot be created</string>
+    <string name="oobe_perm_notify">Notification permission</string>
+    <string name="oobe_perm_notify_desc">Without it the foreground service may be killed</string>
+    <string name="oobe_grant">Grant</string>
+    <string name="oobe_perm_note">Both permissions stay on this device: the VPN only routes Mahjong Soul, notifications only report the tunnel state.</string>
+    <string name="oobe_cert_intro">Until the root certificate is installed and trusted, Mahjong Soul\'s HTTPS cannot be decrypted and neither Mod nor protocol updates take effect.</string>
+    <string name="oobe_cert_manual_hint">If the one-tap install fails, use the manual path on the Certificate tab (it exports the file and lists the steps).</string>
+    <string name="oobe_cert_unsupported">This device exposes no certificate installer entry point - install it manually from the Certificate tab.</string>
+    <string name="oobe_terms_points_title">Key points</string>
+    <string name="oobe_terms_points">· Free and open source — if you paid, you were scammed\n· For study and personal use only, never commercial\n· Using it may get your account banned; neither the upstream author nor this packaging is responsible</string>
+    <string name="oobe_terms_agree">I have read and agree to the above</string>
+    <string name="oobe_next">Next</string>
+    <string name="oobe_back">Back</string>
+    <string name="oobe_finish">Start using</string>
+    <string name="about_replay_oobe">Show the guide again</string>
 </resources>
