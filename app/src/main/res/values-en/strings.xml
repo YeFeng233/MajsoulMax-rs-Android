@@ -6,7 +6,6 @@
     <string name="nav_cert">Cert</string>
     <string name="nav_config">Config</string>
     <string name="nav_logs">Logs</string>
-    <string name="nav_apps">Apps</string>
 
     <string name="status_stopped">Stopped</string>
     <string name="status_starting">Starting…</string>
@@ -17,7 +16,6 @@
     <string name="home_hint_stopped">Once on, Mahjong Soul traffic is routed through the bundled Meta kernel into the local MITM proxy.</string>
     <string name="home_hint_running">Routing is live — you can launch the game now.</string>
     <string name="home_checklist">Pre-flight checks</string>
-    <string name="home_quick_actions">Quick actions</string>
     <string name="home_runtime">Runtime</string>
 
     <string name="check_assets">Config bundle ready</string>
@@ -35,14 +33,7 @@
     <string name="check_action_fix">Fix</string>
     <string name="check_recheck">Re-check</string>
 
-    <string name="action_open_game">Open Mahjong Soul</string>
-    <string name="action_open_game_desc">Built-in browser, line 1</string>
-    <string name="action_install_cert">Install certificate</string>
-    <string name="action_install_cert_desc">Jump straight to the system CA installer</string>
-    <string name="action_edit_config">Edit config</string>
-    <string name="action_edit_config_desc">Visual editor for settings and mod options</string>
     <string name="action_view_logs">View logs</string>
-    <string name="action_view_logs_desc">Live output from the MITM core and Meta kernel</string>
 
     <string name="info_mitm">MITM proxy</string>
     <string name="info_mixed">Meta mixed port</string>
@@ -76,7 +67,6 @@
     <string name="config_tab_general">General</string>
     <string name="config_tab_mod">Mod</string>
     <string name="config_tab_proxy">Proxy</string>
-    <string name="config_tab_raw">Raw JSON</string>
     <string name="config_tab_advanced">Advanced</string>
     <string name="config_advanced_warning">Advanced settings: if you do not know what you are doing, do not change anything here.</string>
     <string name="config_save">Save</string>
@@ -99,9 +89,6 @@
     <string name="cfg_proxy_addr">MITM listen address</string>
     <string name="cfg_api_url">Helper API URL</string>
     <string name="cfg_github_token">GitHub token</string>
-    <string name="cfg_github_token_desc">Leave empty for anonymous access; set one if you hit rate limits</string>
-    <string name="cfg_req_proxy">Upstream proxy for updates</string>
-    <string name="cfg_req_proxy_desc">e.g. http://127.0.0.1:7890 — empty means direct</string>
     <string name="cfg_liqi_version">Current liqi version</string>
     <string name="cfg_send_method">Forwarded methods</string>
     <string name="cfg_send_action">Forwarded actions</string>
@@ -154,14 +141,7 @@
     <string name="logs_formatted">Formatted</string>
     <string name="logs_raw">Raw log</string>
 
-    <string name="apps_intro">By default every app goes through the VPN except this one, which keeps the proxy from looping back on itself. You can narrow that to a chosen set instead.</string>
-    <string name="apps_mode_all">All apps</string>
-    <string name="apps_mode_allow">Only selected</string>
-    <string name="apps_mode_deny">Exclude selected</string>
-    <string name="apps_search">Search apps</string>
-    <string name="apps_selected">%1$d selected</string>
-    <string name="apps_show_system">Show system apps</string>
-
+    <!-- Notification -->
     <string name="notif_channel_name">Tunnel status</string>
     <string name="notif_channel_desc">Shows whether the MITM proxy and Meta kernel are running</string>
     <string name="notif_running">Majsoul Max is running</string>

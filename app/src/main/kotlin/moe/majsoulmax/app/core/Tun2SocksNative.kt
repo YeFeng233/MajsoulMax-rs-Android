@@ -57,9 +57,6 @@ object Tun2SocksNative {
         if (loaded) nativeStop()
     }
 
-    val isRunning: Boolean
-        get() = loaded && nativeIsRunning()
-
     private external fun nativeStart(config: String, tunFd: Int): Int
 
     private external fun nativeStop()

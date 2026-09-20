@@ -25,8 +25,6 @@ import java.io.File
  */
 @Serializable
 data class TunnelSettings(
-    @SerialName("routingMode") val routingMode: RoutingMode = RoutingMode.ALL,
-    @SerialName("selectedApps") val selectedApps: Set<String> = emptySet(),
     @SerialName("mixedPort") val mixedPort: Int = DEFAULT_MIXED_PORT,
     @SerialName("mtu") val mtu: Int = DEFAULT_MTU,
     @SerialName("bypassLan") val bypassLan: Boolean = true,
@@ -38,17 +36,6 @@ data class TunnelSettings(
     @SerialName("kernelLogLevel") val kernelLogLevel: String = "warning",
     @SerialName("acceptedDisclaimer") val acceptedDisclaimer: Boolean = false,
 ) {
-    enum class RoutingMode {
-        /** Every app except this one. */
-        ALL,
-
-        /** Only [selectedApps]. */
-        ALLOW,
-
-        /** Everything except [selectedApps] (and this one). */
-        DENY,
-    }
-
     /**
      * Clamps anything a hand-edited file could get wrong.
      *

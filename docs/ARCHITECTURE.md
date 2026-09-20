@@ -82,11 +82,17 @@ keep the proxy's own traffic from being routed back through itself. Android has 
 equivalent that applies to an in-process library, and `find-process-mode` is
 unreliable there anyway.
 
-Instead `MajsoulVpnService.excludeSelf` calls `addDisallowedApplication` on our
-own package. That removes *all* of this app's traffic from the tun in one stroke:
-the kernel dialling `127.0.0.1:23410`, the MITM core dialling Mahjong Soul, and
-the protocol-update downloads. It is stronger than a process rule and cannot be
-misconfigured by the user.
+Instead the VPN is built as an *allow-list* of exactly one package.
+`MajsoulVpnService.applyAppRouting` calls `addAllowedApplication` with
+`GameLauncher.PACKAGE_NAME` (`com.soulgamechst.majsoul`), which removes *all*
+other traffic — including our own — from the tun in one stroke: the kernel
+dialling `127.0.0.1:23410`, the MITM core dialling Mahjong Soul, the
+protocol-update downloads, and every unrelated app on the device. It is stronger
+than a process rule and cannot be misconfigured by the user.
+
+This is deliberate and is why there is no per-app routing screen: only the game
+client is routed, so a selector would be a control with no effect. `README.md`
+states the same guarantee to the user.
 
 The side effect is that a WebView we host is also outside the tunnel — which is
 why `ui/web/GameActivity.kt` sets a WebView proxy override instead of relying on
@@ -147,7 +153,11 @@ candidates and the screen tries them in turn:
 3. `ACTION_SECURITY_SETTINGS`, then `ACTION_SETTINGS`.
 
 Plus an export to Downloads for the fully manual path, and verbatim steps in the
-UI. Every candidate is filtered through `resolveActivity` first.
+UI. The candidates are deliberately *not* pre-filtered through `resolveActivity`:
+under Android 11 package visibility the installer is invisible to that query
+unless its action is declared in `<queries>`, and even then some ROMs answer
+inconsistently. The screen instead tries each intent in turn and keeps the first
+one that actually starts, which is the only reliable test.
 
 Trust state is *read back* from `AndroidCAStore` rather than inferred from "the
 install intent returned OK", because on several ROMs it returns OK without

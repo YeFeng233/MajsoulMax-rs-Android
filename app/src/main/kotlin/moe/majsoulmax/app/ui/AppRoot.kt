@@ -18,6 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -92,24 +93,45 @@ fun AppRoot() {
             // Slides rather than the default fade. The offsets come from
             // compose.animation directly, so no navigation-package internals are
             // referenced and the code cannot drift with the navigation version.
+            //
+            // Both directions travel a full width. A shallower exit (the old
+            // `-it / 3`) left the outgoing page parked on screen for the whole
+            // animation, so its cards stayed visible on top of the incoming
+            // page — measured on device as the previous page's rows showing
+            // through wherever the new page had no content of its own. With
+            // full travel the two pages tile edge to edge and never overlap.
             enterTransition = { slideInHorizontally(tween(250)) { it } },
-            exitTransition = { slideOutHorizontally(tween(250)) { -it / 3 } },
-            popEnterTransition = { slideInHorizontally(tween(250)) { -it / 3 } },
+            exitTransition = { slideOutHorizontally(tween(250)) { -it } },
+            popEnterTransition = { slideInHorizontally(tween(250)) { -it } },
             popExitTransition = { slideOutHorizontally(tween(250)) { it } },
         ) {
             composable(Destination.HOME.route) {
-                HomeScreen(
-                    onOpenCert = { navController.navigate(Destination.CERT.route) },
-                    onOpenConfig = { navController.navigate(Destination.CONFIG.route) },
-                    onOpenLogs = { navController.navigate(Destination.LOGS.route) },
-                )
+                ScreenSurface {
+                    HomeScreen(
+                        onOpenCert = { navController.navigate(Destination.CERT.route) },
+                        onOpenLogs = { navController.navigate(Destination.LOGS.route) },
+                    )
+                }
             }
-            composable(Destination.CERT.route) { CertScreen() }
-            composable(Destination.CONFIG.route) { ConfigScreen() }
-            composable(Destination.LOGS.route) { LogsScreen() }
-            composable(Destination.ABOUT.route) { AboutScreen() }
+            composable(Destination.CERT.route) { ScreenSurface { CertScreen() } }
+            composable(Destination.CONFIG.route) { ScreenSurface { ConfigScreen() } }
+            composable(Destination.LOGS.route) { ScreenSurface { LogsScreen() } }
+            composable(Destination.ABOUT.route) { ScreenSurface { AboutScreen() } }
         }
     }
+}
+
+/**
+ * Paints an opaque background behind one destination.
+ *
+ * The slide transition keeps both destinations composed for the length of the
+ * animation. Compose destinations are transparent by default — the Scaffold
+ * paints *behind* the NavHost — so without this the outgoing page's cards show
+ * through the incoming one wherever the incoming page has no content.
+ */
+@Composable
+private fun ScreenSurface(content: @Composable () -> Unit) {
+    Surface(modifier = Modifier.fillMaxSize()) { content() }
 }
 
 /**

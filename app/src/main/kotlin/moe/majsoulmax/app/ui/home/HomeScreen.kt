@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Article
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Numbers
@@ -27,8 +26,6 @@ import androidx.compose.material.icons.filled.OpenInBrowser
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Router
 import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,7 +59,6 @@ import java.util.concurrent.TimeUnit
 @Composable
 fun HomeScreen(
     onOpenCert: () -> Unit,
-    onOpenConfig: () -> Unit,
     onOpenLogs: () -> Unit,
     viewModel: HomeViewModel = viewModel(),
 ) {
@@ -185,27 +181,6 @@ fun HomeScreen(
                         notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
                     }
                 },
-            )
-        }
-
-        SectionCard(title = stringResource(R.string.home_quick_actions)) {
-            ActionRow(
-                icon = Icons.Default.VerifiedUser,
-                title = stringResource(R.string.action_install_cert),
-                subtitle = stringResource(R.string.action_install_cert_desc),
-                onClick = onOpenCert,
-            )
-            ActionRow(
-                icon = Icons.Default.Tune,
-                title = stringResource(R.string.action_edit_config),
-                subtitle = stringResource(R.string.action_edit_config_desc),
-                onClick = onOpenConfig,
-            )
-            ActionRow(
-                icon = Icons.Default.Article,
-                title = stringResource(R.string.action_view_logs),
-                subtitle = stringResource(R.string.action_view_logs_desc),
-                onClick = onOpenLogs,
             )
         }
 

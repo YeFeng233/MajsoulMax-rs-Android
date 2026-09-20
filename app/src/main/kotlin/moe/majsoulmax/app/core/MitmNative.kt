@@ -22,9 +22,6 @@ object MitmNative {
         STOPPING,
         ERROR,
         UNAVAILABLE,
-        ;
-
-        val isActive: Boolean get() = this == STARTING || this == RUNNING || this == STOPPING
     }
 
     /** False when libmajsoulmax.so is missing from the APK for this ABI. */
@@ -81,9 +78,6 @@ object MitmNative {
     fun stop() {
         if (available) nativeStop()
     }
-
-    val isRunning: Boolean
-        get() = available && nativeIsRunning()
 
     // Numeric states mirror the constants in rust/majsoul-jni/src/lib.rs.
     private external fun nativeStart(configDir: String, logFile: String): Int

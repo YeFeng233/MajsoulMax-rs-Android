@@ -72,9 +72,7 @@ import moe.majsoulmax.app.data.intMap
 import moe.majsoulmax.app.data.jsonOf
 import moe.majsoulmax.app.data.jsonOfIntMap
 import moe.majsoulmax.app.data.jsonOfInts
-import moe.majsoulmax.app.data.jsonOfNullableString
 import moe.majsoulmax.app.data.jsonOfStrings
-import moe.majsoulmax.app.data.nullableString
 import moe.majsoulmax.app.data.string
 import moe.majsoulmax.app.data.stringList
 import moe.majsoulmax.app.ui.InfoRow
@@ -201,7 +199,7 @@ private fun RestartBanner(dirty: Boolean, onRestart: () -> Unit) {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun GeneralTab(viewModel: ConfigViewModel, state: ConfigViewModel.State, advanced: Boolean = false) {
+private fun GeneralTab(viewModel: ConfigViewModel, state: ConfigViewModel.State) {
     val which = ConfigRepository.Which.GENERAL
     val config = state.effectiveGeneral
 
